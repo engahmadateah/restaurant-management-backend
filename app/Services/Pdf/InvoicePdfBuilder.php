@@ -7,7 +7,7 @@ use App\Models\Setting;
 
 class InvoicePdfBuilder
 {
-    // بيبني بايتات PDF لفاتورة طلب جاهزة للطباعة
+  
     public static function build(Order $order): string
     {
         $order->loadMissing(['items.menuItem', 'items.modifiers', 'table', 'customer', 'user', 'payments']);
@@ -81,7 +81,6 @@ class InvoicePdfBuilder
         return $pdf->output();
     }
 
-    // بيرجع النص كما هو (المولّد PDF نفسه بيحوّل الحروف غير اللاتينية لأقرب مكافئ أو "?")
     protected static function safe(?string $text): string
     {
         return $text ?? '';

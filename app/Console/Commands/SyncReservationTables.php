@@ -5,11 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Reservation;
 use Illuminate\Console\Command;
 
-/**
- * الحجز المؤكد ما بيمسك الطاولة من لحظة التأكيد (ممكن يكون بعد أيام)، بس لما يقرب
- * موعده. هاد الأمر بيمر كل دقيقة ويحوّل الطاولات المتاحة لـ "محجوزة" للحجوزات المؤكدة
- * يلي صار وقتها (Reservation::shouldHoldTable). لازم الـ scheduler يكون شغال.
- */
+
 class SyncReservationTables extends Command
 {
     protected $signature = 'reservations:sync-tables';

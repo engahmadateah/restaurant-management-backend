@@ -25,7 +25,7 @@ class Order extends Model
         'source', 'public_token', 'public_request_id',
     ];
 
-    // رموز الطلب العام (تتبّع الزبون / منع التكرار): ما بتنعرض بـ API الموظفين ولا بسجل التدقيق
+   
     protected $hidden = ['public_token', 'public_request_id'];
 
     protected array $auditExclude = ['public_token', 'public_request_id'];
@@ -86,9 +86,7 @@ class Order extends Model
         return $this->hasMany(Refund::class);
     }
 
-    /**
-     * الانتقالات المسموحة لحالة الطلب. completed و cancelled حالتين نهائيتين.
-     */
+   
     public const STATUS_TRANSITIONS = [
         'pending' => ['preparing', 'ready', 'completed', 'cancelled'],
         'preparing' => ['ready', 'completed', 'cancelled'],
@@ -102,11 +100,7 @@ class Order extends Model
         return in_array($status, self::STATUS_TRANSITIONS[$this->status] ?? [], true);
     }
 
-    /**
-     * أرقام الدفع بالسنت:
-     * gross = كل دفعة مقبوضة (paid أو refunded لأنها انقبضت فعلاً)
-     * approved = الاسترجاعات المعتمدة، pending = المحجوزة بانتظار الموافقة
-     */
+    
     public function paymentTotals(): array
     {
         $gross = Money::cents($this->payments()->whereIn('status', ['paid', 'refunded'])->sum('amount'));
@@ -121,10 +115,6 @@ class Order extends Model
         ];
     }
 
-    /**
-     * إعادة حساب payment_status من الدفعات والاسترجاعات الفعلية
-     * (مصدر واحد للحقيقة بدل ما كل controller يحسبها بطريقته).
-     */
     public function syncPaymentStatus(): void
     {
         $t = $this->paymentTotals();
@@ -145,10 +135,7 @@ class Order extends Model
         }
     }
 
-    /**
-     * إلغاء الطلب بشكل كامل: بيرجّع المخزون ونقاط الولاء المستبدلة وبيحرر الطاولة.
-     * ما بينلغي طلب فيه مبلغ مدفوع صافي - لازم يمر باسترجاع أول.
-     */
+   
     public function cancel(): void
     {
         DB::transaction(function () {
@@ -170,7 +157,7 @@ class Order extends Model
                 ]);
             }
 
-            // رجّع المخزون (بترتيب ثابت بالـ id لتفادي deadlocks)
+           
             $order->load('items');
             foreach ($order->items->sortBy('menu_item_id') as $item) {
                 $menuItem = MenuItem::withTrashed()->whereKey($item->menu_item_id)->lockForUpdate()->first();
@@ -179,7 +166,7 @@ class Order extends Model
                 }
             }
 
-            // رجّع نقاط الولاء المستبدلة على هاد الطلب
+       
             if ($order->loyalty_points_redeemed > 0 && $order->customer_id) {
                 $customer = Customer::whereKey($order->customer_id)->lockForUpdate()->first();
                 $customer?->addLoyaltyPoints(
@@ -196,14 +183,14 @@ class Order extends Model
 
             $update = ['status' => 'cancelled'];
 
-            // طلب التوصيل الملغي ما لازم يضل pending/assigned (كان يتحسب "توصيل نشط")
+           
             if ($order->order_type === 'delivery') {
                 $update['delivery_status'] = 'cancelled';
             }
 
             $order->update($update);
 
-            // السائق المعيّن لازم يعرف إنو الطلب انلغى
+            
             if ($order->order_type === 'delivery' && $order->driver_id) {
                 AppNotification::notifyUser(
                     $order->driver_id,
@@ -218,12 +205,7 @@ class Order extends Model
         });
     }
 
-    /**
-     * إغلاق الطلب نهائيًا (سواء من المطبخ مباشرة لطلبات الصالة/التيك أواي،
-     * أو من مسار التوصيل لما السائق يسلّم الطلب):
-     * - يفرّغ الطاولة إذا كان الطلب مرتبط بطاولة
-     * - يمنح الزبون نقاط ولاء على قيمة الطلب (مرة وحدة فقط)
-     */
+  
     public function markCompleted(): void
     {
         if ($this->status === 'completed') {

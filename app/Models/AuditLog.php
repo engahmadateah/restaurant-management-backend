@@ -22,7 +22,7 @@ class AuditLog extends Model
         return $this->belongsTo(User::class)->withTrashed();
     }
 
-    // اسم مختصر للموديل بدون الـ namespace الكامل (Order بدل App\Models\Order)
+ 
     public function getAuditableTypeShortAttribute(): string
     {
         return class_basename($this->auditable_type);

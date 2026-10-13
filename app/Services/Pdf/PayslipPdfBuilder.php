@@ -6,11 +6,7 @@ use App\Models\Payroll;
 use App\Models\Setting;
 use App\Models\Shift;
 
-/**
- * كشف راتب موظف (PDF). نصوص لاتينية بسبب الخط القياسي؛ اسم الموظف العربي بيتحوّل لأقرب حروف
- * لاتينية (شوف SimplePdfWriter)، والأرقام والتواريخ صح 100%.
- * الورديات يلي بالجدول هي نفسها يلي حسبها PayrollCalculator (مسكّرة، clock_in ضمن الفترة).
- */
+
 class PayslipPdfBuilder
 {
     public static function build(Payroll $payroll): string

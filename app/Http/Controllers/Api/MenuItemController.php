@@ -33,12 +33,12 @@ class MenuItemController extends Controller
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            // translations: {"en": {"name": "...", "description": "..."}, "fr": {...}}
+      
             'translations' => 'nullable|array',
             'translations.*.name' => 'nullable|string|max:255',
             'translations.*.description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            // نسبة ضريبة خاصة بهاد الصنف تتجاوز نسبة التصنيف/الإعداد العام (اتركها فاضية لاستخدام الافتراضي)
+       
             'tax_rate' => 'nullable|numeric|min:0|max:1',
             'image' => 'nullable|string',
             'is_available' => 'boolean',
@@ -78,11 +78,7 @@ class MenuItemController extends Controller
         return response()->json($menuItem->load('category'));
     }
 
-    /**
-     * بيطبّق ترجمة اللغة (?lang=en) وتحويل العملة (?currency=USD) على
-     * مجموعة أصناف قبل ما ترجع بالـ response، بدون ما يتغيّر أي شي
-     * بقاعدة البيانات (كل شي محسوب لحظيًا).
-     */
+
     private function localize($items, Request $request)
     {
         $lang = $request->get('lang');
@@ -116,14 +112,14 @@ class MenuItemController extends Controller
         return response()->json(['message' => 'تم الحذف بنجاح']);
     }
 
-    // رفع صورة لصنف معيّن: POST /api/menu-items/{menuItem}/image
+    
     public function uploadImage(Request $request, MenuItem $menuItem)
     {
         $request->validate([
-            'image' => 'required|image|max:2048', // 2MB كحد أقصى
+            'image' => 'required|image|max:2048', 
         ]);
 
-        // حذف الصورة القديمة إذا كانت موجودة
+ 
         if ($menuItem->image) {
             Storage::disk('public')->delete($menuItem->image);
         }

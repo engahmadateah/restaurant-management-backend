@@ -5,19 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * مفاتيح أجنبية كانت بـ cascadeOnDelete على سجلات مالية/تاريخية:
- *  - orders.user_id        حذف موظف = حذف كل طلباته (ومعها الدفعات والاسترجاعات)
- *  - refunds.requested_by  حذف موظف = حذف استرجاعاته
- *  - order_items.menu_item_id  حذف صنف = مسحه من الطلبات القديمة (المجموع ما بيطابق الأصناف)
- *  - payrolls.user_id / shifts.user_id  حذف موظف = حذف رواتبه وحضوره
- *
- * هلأ: الطلبات والاسترجاعات بتبقى (user = null)، والأصناف والرواتب والورديات بتمنع الحذف الفعلي.
- * الحذف العادي من الواجهة صار soft delete (شوف migration إضافة deleted_at) فما بيوصل لهون أصلاً.
- *
- * SQLite (بيئة الاختبارات) بيحتاج إعادة بناء الجدول لتغيير المفاتيح الأجنبية، فبنتخطاها هناك:
- * هالقيود بتنطبق على MySQL/PostgreSQL (الإنتاج).
- */
+
 return new class extends Migration
 {
     /** @return array<int, array{table: string, column: string, on: string, nullable: bool, action: string}> */
@@ -39,8 +27,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        // رجوع للسلوك القديم (cascade). الأعمدة اللي صارت nullable بتضل nullable عن قصد
-        // (إرجاعها NOT NULL بيفشل إذا في صفوف user_id = null).
+       
         $this->rewire(array_map(
             fn (array $c) => ['nullable' => true, 'action' => 'cascadeOnDelete'] + $c,
             $this->changes()

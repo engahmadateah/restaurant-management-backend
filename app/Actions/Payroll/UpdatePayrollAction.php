@@ -7,7 +7,7 @@ use App\Exceptions\BusinessRuleException;
 use App\Models\Payroll;
 use Illuminate\Support\Facades\DB;
 
-/** تعديل الاستقطاعات/الملاحظات على كشف لسا مسودة (قبل الاعتماد) */
+
 class UpdatePayrollAction
 {
     public function execute(Payroll $payroll, array $data): Payroll

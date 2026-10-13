@@ -9,10 +9,10 @@ use Illuminate\Http\Request;
 
 class AuditLogController extends Controller
 {
-    /** الإجراءات يلي بيسجّلها Auditable */
+   
     private const ACTIONS = ['created', 'updated', 'deleted'];
 
-    // سجل التدقيق: مين عدل شو وإيمتى. محمي بصلاحية audit.view (شوف routes/api.php)
+ 
     public function index(Request $request)
     {
         $request->validate([
@@ -24,7 +24,6 @@ class AuditLogController extends Controller
             'to' => 'nullable|date|after_or_equal:from',
         ]);
 
-        // id كتعادل ثاني: سجلات بنفس الثانية بتضل بترتيب ثابت بين الصفحات
         $query = AuditLog::with('user:id,name,role')->latest()->latest('id');
 
         if ($request->filled('user_id')) {
@@ -35,7 +34,6 @@ class AuditLogController extends Controller
             $query->where('action', $request->action);
         }
 
-        // بيقبل اسم مختصر للموديل (Order) أو الاسم الكامل (App\Models\Order)
         if ($request->filled('model')) {
             $model = $request->model;
             $fullyQualified = str_contains($model, '\\') ? $model : 'App\\Models\\' . $model;
@@ -57,10 +55,7 @@ class AuditLogController extends Controller
         return $query->paginate($this->perPage($request, 25));
     }
 
-    /**
-     * خيارات الفلاتر لقوائم الواجهة: الموديلات يلي إلها سجلات فعلاً، والموظفين يلي عملوا تعديلات.
-     * (بدل ما المدير يكتب اسم الموديل بإيده).
-     */
+  
     public function filters()
     {
         $models = AuditLog::query()

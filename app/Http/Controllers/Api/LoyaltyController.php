@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class LoyaltyController extends Controller
 {
-    // رصيد النقاط الحالي + سجل الحركات لزبون معيّن
+    
     public function show(Customer $customer)
     {
         return response()->json([
@@ -19,11 +19,11 @@ class LoyaltyController extends Controller
         ]);
     }
 
-    // تعديل يدوي من الأدمن (زيادة أو خصم نقاط، مثلاً كتعويض أو مكافأة خاصة)
+
     public function adjust(Request $request, Customer $customer)
     {
         $validated = $request->validate([
-            // موجب = إضافة، سالب = خصم
+           
             'points' => 'required|integer|not_in:0',
             'description' => 'nullable|string|max:255',
         ]);

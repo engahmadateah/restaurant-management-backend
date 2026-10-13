@@ -5,14 +5,7 @@ namespace App\Services;
 use RuntimeException;
 use ZipArchive;
 
-/**
- * مولّد ملف Excel حقيقي (.xlsx) بدون مكتبات: ملف OOXML بسيط بيتبني بـ ZipArchive.
- * (ما فينا نضيف PhpSpreadsheet لأنو بيئة التطوير ما عندها وصول لـ packagist، شوف CsvExporter.)
- *
- * بيدعم: صف عناوين بخط عريض ومثبّت، أعمدة بعرض مناسب، أرقام حقيقية (مش نصوص) بتنسيق 0.00،
- * اتجاه الصفحة من اليمين لليسار، وصف أخير عريض اختياري (المجاميع).
- * القيم: int/float = رقم، string = نص، null = خلية فاضية.
- */
+
 class XlsxExporter
 {
     public static function isAvailable(): bool
@@ -60,7 +53,7 @@ class XlsxExporter
             . '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
             . '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
             . '</Relationships>');
-        // أنماط: 0 عادي، 1 عنوان عريض، 2 رقم 0.00، 3 عريض، 4 عريض + 0.00
+       
         $zip->addFromString('xl/styles.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
             . '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'
@@ -90,7 +83,7 @@ class XlsxExporter
     {
         $colCount = count($headers);
 
-        // عرض العمود حسب أطول نص (بحد أدنى وأقصى معقولين)
+    
         $widths = array_map(fn ($h) => mb_strlen((string) $h) + 4, $headers);
         foreach ($rows as $row) {
             foreach (array_values($row) as $i => $cell) {
@@ -158,7 +151,7 @@ class XlsxExporter
 
     private static function esc(string $text): string
     {
-        // محارف التحكم غير المسموحة بـ XML بتخلّي Excel يرفض الملف كله
+      
         $text = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', $text) ?? '';
 
         return htmlspecialchars($text, ENT_XML1 | ENT_QUOTES, 'UTF-8');

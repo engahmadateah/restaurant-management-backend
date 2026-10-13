@@ -19,10 +19,7 @@ class Shift extends Model
         'auto_closed' => 'boolean',
     ];
 
-    /**
-     * أقصى مدة وردية بالدقايق (إعداد shift_max_hours، افتراضي 12 ساعة، بين ساعة و24).
-     * أي وردية مفتوحة أكتر من هيك بتنعتبر منسية.
-     */
+ 
     public static function maxMinutes(): int
     {
         $hours = (float) Setting::get('shift_max_hours', 12);
@@ -35,7 +32,7 @@ class Shift extends Model
         return $this->belongsTo(User::class)->withTrashed();
     }
 
-    // مدة الوردية بالدقايق (لو لسا ما سكّرها الموظف بترجع null)
+
     public function getDurationMinutesAttribute(): ?int
     {
         if (! $this->clock_out) {

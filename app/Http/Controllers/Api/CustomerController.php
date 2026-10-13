@@ -8,12 +8,7 @@ use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
-    /**
-     * قائمة الزبائن.
-     *  - مع page أو per_page: ترقيم صفحات (الأقصى بـ Controller::MAX_PER_PAGE) والرد فيه total.
-     *  - بدونهم: مصفوفة كاملة بسقف ALL_ROWS_CAP (توافق مع القوائم المنسدلة بالـ POS والطلبات والحجوزات).
-     *  - search: اسم أو هاتف.
-     */
+  
     public function index(Request $request)
     {
         $request->validate(['search' => 'nullable|string|max:100']);
@@ -21,7 +16,7 @@ class CustomerController extends Controller
         $query = Customer::query()
             ->when($request->filled('search'), function ($q) use ($request) {
                 $like = '%' . addcslashes(trim($request->search), '%_\\') . '%';
-                // الأقواس ضرورية: OR بين الاسم والهاتف ما يتسرّب لأي شرط تاني على الـ query
+     
                 $q->where(fn ($w) => $w->where('name', 'like', $like)->orWhere('phone', 'like', $like));
             })
             ->latest()->latest('id');

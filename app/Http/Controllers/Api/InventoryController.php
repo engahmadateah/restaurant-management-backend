@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
-    // كل الأصناف يلي بتتبّع مخزون
+
     public function index()
     {
         return MenuItem::with('category')
@@ -17,7 +17,7 @@ class InventoryController extends Controller
             ->get();
     }
 
-    // الأصناف يلي وصلت أو تحت حد المخزون المنخفض
+   
     public function lowStock()
     {
         return MenuItem::with('category')
@@ -27,7 +27,7 @@ class InventoryController extends Controller
             ->get();
     }
 
-    // تزويد المخزون (وصول توريد جديد مثلاً)
+ 
     public function restock(Request $request, MenuItem $menuItem)
     {
         $validated = $request->validate([
@@ -39,7 +39,7 @@ class InventoryController extends Controller
         return response()->json($menuItem->fresh());
     }
 
-    // تفعيل/تعديل إعدادات تتبع المخزون لصنف معيّن
+ 
     public function updateSettings(Request $request, MenuItem $menuItem)
     {
         $validated = $request->validate([
@@ -48,8 +48,7 @@ class InventoryController extends Controller
             'low_stock_threshold' => 'nullable|integer|min:0',
         ]);
 
-        // stock_quantity و low_stock_threshold أعمدة NOT NULL: القيمة الفاضية (null) كانت
-        // تكسر الـ UPDATE بخطأ 500. null هون يعني "ما تغيّر القيمة الحالية"
+        
         $menuItem->update(array_filter($validated, fn ($value) => $value !== null));
 
         return response()->json($menuItem->fresh());

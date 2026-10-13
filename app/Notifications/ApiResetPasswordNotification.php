@@ -19,9 +19,7 @@ class ApiResetPasswordNotification extends Notification
         return ['mail'];
     }
 
-    // منبني رابط استعادة كلمة السر يدوياً (بدون route() تبع الويب لأنو
-    // هاد نظام API فقط)، وبيوجّه لصفحة الفرونت إند المحددة بـ FRONTEND_URL
-    // أو بيرجع التوكن مباشرة إذا ما كان في فرونت إند معرّف.
+ 
     public function toMail($notifiable): MailMessage
     {
         $frontendUrl = rtrim(config('app.frontend_url', ''), '/');

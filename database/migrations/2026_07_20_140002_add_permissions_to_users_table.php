@@ -6,11 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    // بنضيف صلاحيات دقيقة فوق الـ role الأساسي:
-    // - extra_permissions: صلاحيات إضافية ممنوحة للمستخدم فوق صلاحيات دوره الافتراضية
-    // - revoked_permissions: صلاحيات مسحوبة منه حتى لو دوره بيدّيه ياها افتراضيًا
-    // مثال: كاشير بدك تديه يشوف التقارير بس ما تديه يعدلها:
-    //   extra_permissions: ["reports.view"], revoked_permissions: ["reports.export"]
+  
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {

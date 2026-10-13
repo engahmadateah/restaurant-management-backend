@@ -55,12 +55,12 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
-    // تغيير كلمة السر للمستخدم المسجل دخوله حالياً (لازم يعرف كلمة السر القديمة)
+
     public function changePassword(Request $request)
     {
         $validated = $request->validate([
             'current_password' => 'required|string',
-            // الجديدة لازم تختلف عن الحالية (خصوصاً المؤقتة يلي حطها الأدمن)
+    
             'password' => 'required|string|min:6|confirmed|different:current_password',
         ]);
 
@@ -72,14 +72,13 @@ class AuthController extends Controller
             ]);
         }
 
-        // must_change_password = false: هيك بيتحرّر الموظف المجبور على تغيير كلمة السر
+      
         $user->update([
             'password' => Hash::make($validated['password']),
             'must_change_password' => false,
         ]);
 
-        // منسحب كل الجلسات التانية (لو حدا سرق التوكن، تغيير كلمة السر لازم يطرده)،
-        // ومنخلي التوكن الحالي حتى ما يتسجّل خروج المستخدم من الجهاز يلي غيّر منه
+        
         $current = $user->currentAccessToken();
         $others = $user->tokens();
         if ($current instanceof PersonalAccessToken) {
@@ -93,18 +92,18 @@ class AuthController extends Controller
         ]);
     }
 
-    // إرسال رابط/توكن استعادة كلمة السر على إيميل المستخدم
+  
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
         Password::sendResetLink($request->only('email'));
 
-        // نفس الرد دايمًا سواء الإيميل موجود أو لا، حتى ما حدا يقدر يعرف مين مسجّل عنا
+
         return response()->json(['message' => 'إذا الإيميل مسجّل عنا، رح توصلك رسالة فيها رابط استعادة كلمة السر']);
     }
 
-    // إعادة تعيين كلمة السر باستخدام التوكن يلي انبعت على الإيميل
+
     public function resetPassword(Request $request)
     {
         $validated = $request->validate([

@@ -42,15 +42,13 @@ class Customer extends Model
         return $this->hasMany(LoyaltyTransaction::class);
     }
 
-    // الأصناف المفضّلة عند الزبون (Wishlist)
+    
     public function favorites()
     {
         return $this->belongsToMany(MenuItem::class, 'customer_favorites')->withTimestamps();
     }
 
-    /**
-     * إضافة نقاط ولاء (كسب أو تعديل يدوي بالزيادة) + تسجيلها بالسجل.
-     */
+   
     public function addLoyaltyPoints(int $points, string $type = 'earn', ?string $description = null, ?int $orderId = null): void
     {
         if ($points <= 0) {
@@ -67,9 +65,7 @@ class Customer extends Model
         ]);
     }
 
-    /**
-     * استبدال (خصم) نقاط ولاء + تسجيلها بالسجل كقيمة سالبة.
-     */
+ 
     public function redeemLoyaltyPoints(int $points, ?string $description = null, ?int $orderId = null, string $type = 'redeem'): void
     {
         if ($points <= 0) {

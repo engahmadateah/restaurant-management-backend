@@ -9,11 +9,7 @@ use Illuminate\Validation\Rule;
 
 class ShiftScheduleController extends Controller
 {
-    // جدولة الورديات المسبقة، متل "وليد شغال بكرا من 9-5"
-    // مختلفة عن /shifts/clock-in و /shifts/clock-out يلي هي تسجيل حضور فعلي
-
-    // قائمة الجدولة: صاحب صلاحية schedules.manage بيشوف الكل مع فلترة،
-    // غيره بيشوف جدولته هو بس
+    
     public function index(Request $request)
     {
         $query = ShiftSchedule::with(['user:id,name,role', 'creator:id,name'])
@@ -42,7 +38,7 @@ class ShiftScheduleController extends Controller
         return $query->paginate($this->perPage($request, 25));
     }
 
-    // إنشاء وردية مجدولة لموظف (لازم صلاحية schedules.manage)
+
     public function store(Request $request)
     {
         $this->authorizeManage($request);
@@ -75,8 +71,7 @@ class ShiftScheduleController extends Controller
         return $shiftSchedule->load(['user:id,name,role', 'creator:id,name']);
     }
 
-    // تعديل وردية مجدولة (تأجيل، تغيير وقت، إلغاء...) - لازم schedules.manage
-    // إلا إذا كان الموظف نفسه بس بدو "يأكد" (confirm) وردية إلها
+ 
     public function update(Request $request, ShiftSchedule $shiftSchedule)
     {
         $user = $request->user();
@@ -88,7 +83,7 @@ class ShiftScheduleController extends Controller
         }
 
         if (! $canManage && $isOwner) {
-            // الموظف العادي بس فيه يأكد أو يلغي وردية إله، مو يعدل وقتها
+
             $validated = $request->validate([
                 'status' => ['required', Rule::in(['confirmed', 'cancelled'])],
             ]);
@@ -135,7 +130,6 @@ class ShiftScheduleController extends Controller
         abort_unless($request->user()->hasPermission('schedules.manage'), 403, 'ما عندك صلاحية تدير جدولة الورديات');
     }
 
-    // بيتأكد ما في تعارض وقت لنفس الموظف بنفس اليوم
     protected function assertNoOverlap(array $data, ?int $ignoreId = null): void
     {
         $conflict = ShiftSchedule::where('user_id', $data['user_id'])

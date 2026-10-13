@@ -12,10 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * صندوق الكاشير: فتح برصيد بداية، وإغلاق بعد عدّ الكاش الفعلي والفرق (عجز/زيادة).
- * الصلاحيات: drawer.manage_own = صندوقي أنا، drawer.manage_all = كل الصناديق (والإغلاق عن غيري).
- */
+
 class CashDrawerController extends Controller
 {
     public function __construct(private CashDrawerCalculator $calculator)
@@ -27,18 +24,18 @@ class CashDrawerController extends Controller
         return $request->user()->hasPermission('drawer.manage_all');
     }
 
-    /** صندوقي أنا أو (صلاحية manage_all) أي صندوق، غير هيك 403 */
+
     private function authorizeDrawer(Request $request, CashDrawer $drawer): void
     {
         abort_unless($this->canSeeAll($request) || $drawer->user_id === $request->user()->id, 403, 'ما عندك صلاحية على هالصندوق');
     }
 
-    /** بيضيف لكل صندوق ملخّص الحسبة (حي للمفتوح، لقطة محفوظة + تفصيل الطرق للمسكّر) */
+
     private function present(CashDrawer $drawer): CashDrawer
     {
         $summary = $this->calculator->summarize($drawer);
 
-        // المفتوح: المتوقع حي. المسكّر: نعرض اللقطة المخزّنة (مش المحسوبة من جديد)
+   
         if ($drawer->isOpen()) {
             $drawer->setAttribute('cash_sales', $summary['cash_sales']);
             $drawer->setAttribute('cash_refunds', $summary['cash_refunds']);
@@ -86,13 +83,13 @@ class CashDrawerController extends Controller
 
         $page = $query->latest('opened_at')->paginate($this->perPage($request));
 
-        // الأرقام الحية بس للصناديق المفتوحة (قليلة)، المسكّرة بتاخد اللقطة المخزّنة
+
         $page->getCollection()->transform(fn (CashDrawer $d) => $d->isOpen() ? $this->present($d) : $d);
 
         return $page;
     }
 
-    // صندوقي المفتوح حالياً (أو null) مع الحسبة الحية
+ 
     public function current(Request $request)
     {
         $drawer = CashDrawer::with('user:id,name,role')
@@ -120,7 +117,7 @@ class CashDrawerController extends Controller
         $user = $request->user();
 
         $drawer = DB::transaction(function () use ($user, $validated) {
-            // قفل صف الموظف: ضغطتين متزامنتين على "فتح" ما لازم تعملوا صندوقين مفتوحين
+       
             User::whereKey($user->id)->lockForUpdate()->first();
 
             if (CashDrawer::where('user_id', $user->id)->whereNull('closed_at')->exists()) {
@@ -163,7 +160,7 @@ class CashDrawerController extends Controller
             $differenceC = $countedC - Money::cents($summary['expected_cash']);
             $notes = trim((string) ($validated['notes'] ?? ''));
 
-            // أي فرق (عجز أو زيادة) لازم يتوثّق: بدون ملاحظة ما بيتسكّر
+      
             if ($differenceC !== 0 && $notes === '') {
                 throw ValidationException::withMessages([
                     'notes' => ['في فرق بين المتوقع والمعدود، اكتب ملاحظة تشرحه'],

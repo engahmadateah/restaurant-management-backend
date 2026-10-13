@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Models\Payroll */
+
 class PayrollResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -36,7 +36,7 @@ class PayrollResource extends JsonResource
             'updated_at' => $this->updated_at,
 
             'user' => $this->whenLoaded('user', fn ($u) => new StaffBriefResource($u)),
-            // المفتاح camelCase لأنو الفرونت (types/models.ts) بيقراه هيك
+           
             'generatedBy' => $this->whenLoaded('generatedBy', fn ($u) => new UserSummaryResource($u)),
         ];
     }

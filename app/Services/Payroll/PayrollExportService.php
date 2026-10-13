@@ -7,10 +7,7 @@ use App\Services\CsvExporter;
 use App\Services\XlsxExporter;
 use Illuminate\Validation\ValidationException;
 
-/**
- * تصدير الرواتب للمحاسب (xlsx أو csv) مع صف مجاميع. فلاتر اختيارية: from/to (كشوفات فترتها
- * بتتقاطع مع المجال)، status، user_id.
- */
+
 class PayrollExportService
 {
     private const HEADERS = [

@@ -8,13 +8,10 @@ use App\Models\Modifier;
 use App\Models\ModifierGroup;
 use Illuminate\Http\Request;
 
-/**
- * إدارة مجموعات الخيارات الإضافية (Modifiers) لكل صنف بالمنيو.
- * مثال: صنف "بيتزا" -> مجموعة "الحجم" (وسط/كبير) + مجموعة "الإضافات" (جبنة/زيتون...).
- */
+
 class ModifierGroupController extends Controller
 {
-    // كل مجموعات الخيارات لصنف معيّن مع الخيارات جواها
+   
     public function index(MenuItem $menuItem)
     {
         return $menuItem->modifierGroups()->with('modifiers')->orderBy('sort_order')->get();
@@ -27,7 +24,7 @@ class ModifierGroupController extends Controller
             'is_required' => 'boolean',
             'max_selections' => 'integer|min:1',
             'sort_order' => 'integer',
-            // ممكن تنضاف الخيارات مباشرة مع المجموعة بنفس الطلب
+      
             'modifiers' => 'sometimes|array',
             'modifiers.*.name' => 'required_with:modifiers|string|max:255',
             'modifiers.*.extra_price' => 'required_with:modifiers|numeric|min:0',
@@ -68,7 +65,6 @@ class ModifierGroupController extends Controller
         return response()->json(['message' => 'تم حذف المجموعة بنجاح']);
     }
 
-    // ---------- إدارة الخيار المفرد جوا المجموعة ----------
 
     public function storeModifier(Request $request, MenuItem $menuItem, ModifierGroup $modifierGroup)
     {

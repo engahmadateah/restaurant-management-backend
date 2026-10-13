@@ -4,9 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// دعم تعدد اللغات بالمنيو: name/description الأصليين بيضلوا اللغة
-// الافتراضية (عربي)، وعمود translations بيخزّن الترجمات الإضافية:
-// { "en": { "name": "Hummus", "description": "..." }, "fr": {...} }
+
 return new class extends Migration
 {
     public function up(): void

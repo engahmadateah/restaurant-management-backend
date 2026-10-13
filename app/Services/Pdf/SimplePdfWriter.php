@@ -2,20 +2,7 @@
 
 namespace App\Services\Pdf;
 
-/**
- * مولّد PDF بسيط بدون أي مكتبات خارجية (لا dompdf ولا PhpSpreadsheet).
- *
- * ليش هيك؟ بيئة التطوير هون ما عندها وصول لـ packagist.org لتنزيل
- * حزم composer جديدة، فكتبنا مولّد PDF مبسّط يشتغل بـ PHP الصافي
- * (يبني بايتات ملف PDF يدويًا حسب الـ spec) بدون أي dependency.
- *
- * ملاحظة مهمة: الخط المستخدم Helvetica القياسي (WinAnsi)، وهو ما بيدعم
- * الحروف العربية (الـ shaping/bidi لازمه مكتبة متخصصة). فـ أي نص عربي
- * منمرره بيتحول تلقائيًا لأقرب حروف لاتينية أو "?" حتى ما ينكسر الملف.
- * الأرقام والتواريخ والأسعار (يلي هي أهم شي بالفاتورة/التقرير) بتظهر
- * صح 100%. لدعم عربي كامل بالـ PDF مستقبلاً، لازم نضيف dompdf/mpdf
- * عن طريق composer لما يصير في وصول للإنترنت.
- */
+
 class SimplePdfWriter
 {
     protected array $pages = [];
@@ -53,7 +40,7 @@ class SimplePdfWriter
         }
     }
 
-    // بينظف النص لحروف لاتينية آمنة جوا ملف PDF (شوف الملاحظة فوق بخصوص العربي)
+ 
     protected function esc(string $text): string
     {
         $converted = @iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $text);

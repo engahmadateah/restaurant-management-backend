@@ -14,13 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-/**
- * منطق إنشاء الطلب (مخزون + كوبون + نقاط ولاء + ضريبة + توصيل).
- *
- * كل الحسابات المالية بالسنت (أعداد صحيحة) وبتتحوّل لـ decimal بس عند الحفظ،
- * فمجموع tax_amount لسطور الطلب بيساوي دايماً ضريبة الطلب (قبل كان بيصير فرق
- * سنت بسبب تقريب كل سطر لحاله وتقريب المجموع لحاله).
- */
+
 class OrderService
 {
     /**
@@ -28,14 +22,13 @@ class OrderService
      */
     public function create(array $validated, ?int $userId): Order
     {
-        // نسبة الضريبة العامة الافتراضية (تُستخدم لأي صنف ما إله ولا لتصنيفه نسبة خاصة)
+     
         $defaultTaxRate = (float) (Setting::get('tax_rate', 0.16));
 
         $order = DB::transaction(function () use ($validated, $userId, $defaultTaxRate) {
             $requested = $this->aggregateRequestedQuantities($validated['items']);
             $menuItems = $this->lockAndCheckStock($requested);
 
-            // ---------- الأسطر والمجموع الفرعي ----------
             $subtotalC = 0;
             $lines = [];
 
@@ -47,7 +40,7 @@ class OrderService
                 $lineTotalC = $unitC * $item['quantity'];
                 $subtotalC += $lineTotalC;
 
-                // ضريبة قابلة للتخصيص: صنف -> تصنيف -> نسبة عامة افتراضية (شوف MenuItem::effectiveTaxRate)
+             
                 $lines[] = [
                     'menu_item' => $menuItem,
                     'quantity' => $item['quantity'],
@@ -60,12 +53,12 @@ class OrderService
 
             $this->decrementStock($menuItems, $requested);
 
-            // ---------- الخصومات ----------
+       
             [$couponId, $couponDiscountC] = $this->applyCoupon($validated['coupon_code'] ?? null, $subtotalC);
 
             $customer = null;
             if (! empty($validated['customer_id'])) {
-                // منقفل صف الزبون حتى طلبين متزامنين ما يصرفوا نفس النقاط مرتين
+           
                 $customer = Customer::whereKey($validated['customer_id'])->lockForUpdate()->first();
             }
 
@@ -77,9 +70,7 @@ class OrderService
 
             $discountC = min($couponDiscountC + $pointsDiscountC, $subtotalC);
 
-            // ---------- الضريبة ----------
-            // ضريبة كل سطر بعد تطبيق نسبة الخصم الكلي (كوبون + نقاط) بالتناسب،
-            // وضريبة الطلب = مجموع ضرائب الأسطر بالضبط.
+           
             $discountRatio = $subtotalC > 0 ? min($discountC / $subtotalC, 1) : 0;
             $taxC = 0;
             foreach ($lines as &$line) {
@@ -88,7 +79,7 @@ class OrderService
             }
             unset($line);
 
-            // ---------- رسوم توصيل لطلبات الديليفري فقط ----------
+           
             $deliveryFeeC = 0;
             $deliveryStatus = 'not_applicable';
             if ($validated['order_type'] === 'delivery') {
@@ -163,7 +154,7 @@ class OrderService
                 ['order_id' => $order->id]
             );
         } else {
-            // طلب من الزبون مباشرة: لازم الكل (أدمن/مدير/كاشير) ينتبه إله
+          
             $origin = $order->source === 'qr'
                 ? 'من طاولة ' . ($order->table?->table_number ?? '')
                 : 'أونلاين (' . ($order->order_type === 'delivery' ? 'توصيل' : 'استلام') . ')';
@@ -182,7 +173,7 @@ class OrderService
         return $order;
     }
 
-    /** منجمّع الكمية لكل صنف (نفس الصنف ممكن يتكرر بأكتر من سطر) ومنرتّب بالـ id لتفادي deadlocks */
+ 
     private function aggregateRequestedQuantities(array $items): array
     {
         $requested = [];
@@ -195,9 +186,7 @@ class OrderService
     }
 
     /**
-     * فحص التوفر والمخزون داخل نفس الـ transaction مع قفل الصفوف
-     * (طلبين متزامنين ما لازم يبيعوا نفس القطعة).
-     *
+    
      * @return array<int, MenuItem>
      */
     private function lockAndCheckStock(array $requested): array
@@ -236,12 +225,6 @@ class OrderService
     }
 
     /**
-     * الخيارات الإضافية: بنتحقق من
-     *  1) كل خيار تابع فعلًا لمجموعة من مجموعات نفس الصنف (مش صنف تاني)
-     *  2) الخيار متاح (is_available)
-     *  3) المجموعة الإلزامية (is_required) لازم يتختار منها خيار على الأقل
-     *  4) ما يتجاوز عدد الخيارات المختارة من المجموعة حد max_selections
-     *
      * @return \Illuminate\Support\Collection<int, Modifier> الخيارات المختارة (بدون تكرار)
      */
     private function resolveModifiers(MenuItem $menuItem, array $modifierIds)
@@ -272,7 +255,7 @@ class OrderService
         foreach ($groups as $group) {
             $count = $selectedByGroup->get($group->id, collect())->count();
 
-            // مجموعة إلزامية ما فيها ولا خيار متاح = ما منعلّق الطلب عليها
+     
             $hasAvailable = $group->modifiers->contains(fn ($m) => $m->is_available);
 
             if ($group->is_required && $hasAvailable && $count === 0) {
@@ -314,8 +297,6 @@ class OrderService
     }
 
     /**
-     * كوبون غير صالح/منتهي = خطأ واضح (مش تجاهل بصمت)، والخصم ما بيتجاوز قيمة الطلب أبدًا.
-     *
      * @return array{0: int|null, 1: int} [coupon_id, الخصم بالسنت]
      */
     private function applyCoupon(?string $code, int $subtotalC): array
@@ -340,9 +321,7 @@ class OrderService
     }
 
     /**
-     * استبدال نقاط الولاء بخصم إضافي: بنخصم فقط النقاط يلي فعلاً تُستخدم
-     * (ما بتضيع نقاط على خصم انقطع بالسقف).
-     *
+    
      * @return array{0: int, 1: int} [النقاط المستبدلة، الخصم بالسنت]
      */
     private function applyLoyaltyPoints(?Customer $customer, int $requestedPoints, int $maxDiscountC): array

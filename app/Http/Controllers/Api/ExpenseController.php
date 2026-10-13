@@ -11,7 +11,7 @@ class ExpenseController extends Controller
 {
     public const CATEGORIES = ['rent', 'utilities', 'salaries', 'supplies', 'maintenance', 'marketing', 'other'];
 
-    // قائمة المصاريف، مع فلترة اختيارية حسب التصنيف أو مجال تاريخ
+
     public function index(Request $request)
     {
         $query = Expense::with('creator:id,name')->latest('expense_date');
@@ -28,7 +28,7 @@ class ExpenseController extends Controller
             $query->whereDate('expense_date', '<=', $request->to);
         }
 
-        // بنحسب الإجمالي على كل النتائج المفلترة (مش بس صفحة واحدة) قبل التقسيم
+
         $total = (float) (clone $query)->sum('amount');
 
         if ($this->wantsAll($request)) {

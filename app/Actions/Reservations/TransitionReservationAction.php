@@ -13,7 +13,7 @@ class TransitionReservationAction
 {
     public function __construct(private ReservationTableService $tables) {}
 
-    /** نقطة الدخول العادية: بتقفل الحجز وبتنفّذ جوا transaction */
+  
     public function execute(Reservation $reservation, ReservationStatus $to, array $extra = []): Reservation
     {
         return DB::transaction(function () use ($reservation, $to, $extra) {
@@ -23,7 +23,7 @@ class TransitionReservationAction
         });
     }
 
-    /** لازم تنستدعى جوا transaction والحجز مقفول (بتستخدمها UpdateReservationAction) */
+  
     public function apply(Reservation $reservation, ReservationStatus $to, array $extra = []): Reservation
     {
         if (! $reservation->status->canTransitionTo($to)) {

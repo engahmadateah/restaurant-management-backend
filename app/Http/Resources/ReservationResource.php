@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Models\Reservation */
+
 class ReservationResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -25,7 +25,7 @@ class ReservationResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
-            // whenLoaded بالـ closure: غير محمّلة = مخفية، محمّلة وفاضية = null (مش [])
+         
             'table' => $this->whenLoaded('table', fn ($t) => new RestaurantTableResource($t)),
             'customer' => $this->whenLoaded('customer', fn ($c) => new CustomerResource($c)),
             'user' => $this->whenLoaded('user', fn ($u) => new UserSummaryResource($u)),

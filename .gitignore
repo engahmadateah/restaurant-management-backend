@@ -22,11 +22,11 @@ yarn-error.log
 /.vscode
 /.zed
 
-# OS files
+
 .DS_Store
 Thumbs.db
 
-# Postman local workspace files (may contain credentials) - keep only the shared API collection
+
 /.postman
 /postman/environments
 /postman/globals

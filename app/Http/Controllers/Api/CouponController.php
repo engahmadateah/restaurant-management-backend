@@ -64,8 +64,7 @@ class CouponController extends Controller
         return response()->json(['message' => 'تم الحذف بنجاح']);
     }
 
-    // دالة خاصة نستخدمها لاحقًا للتحقق من صلاحية كوبون قبل تطبيقه
-    /** الكوبون النسبي ما بيتجاوز 100% (قبل كان 150% يعطي طلب مجاني) */
+   
     private function assertValidPercentage(string $type, float|int|string $value): void
     {
         if ($type === 'percentage' && (float) $value > 100) {

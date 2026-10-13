@@ -34,9 +34,7 @@ class OrderItem extends Model
         return $this->hasMany(OrderItemModifier::class);
     }
 
-    /**
-     * إجمالي سطر هاد الصنف بالطلب (السعر + كل الإضافات المختارة) × الكمية.
-     */
+    
     public function getLineTotalAttribute(): float
     {
         $modifiersTotal = $this->modifiers->sum('extra_price');

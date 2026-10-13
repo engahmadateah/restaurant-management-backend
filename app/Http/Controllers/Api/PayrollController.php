@@ -21,10 +21,10 @@ use App\Services\Pdf\PayslipPdfBuilder;
 
 class PayrollController extends Controller
 {
-    // الموظف العادي بيشوف كشوفات راتبه هو بس، صاحب صلاحية payroll.manage بيشوف الكل
+ 
     public function index(ListPayrollRequest $request)
     {
-        // through(): بنحافظ على شكل الـ pagination المسطّح (data, current_page, last_page...) يلي الفرونت بيعتمد عليه
+    
         return Payroll::query()
             ->with(Payroll::WITH_LIST)
             ->visibleTo($request->user(), $request->validated())
@@ -40,10 +40,7 @@ class PayrollController extends Controller
         return PayrollResource::make($payroll->load(Payroll::WITH_DETAIL));
     }
 
-    /**
-     * كشف الراتب كـ PDF. للموظف نفسه (كشفه هو) أو لصاحب payroll.manage.
-     * المسودة ما بتنطبع: الأرقام لسا بتتغيّر (استقطاعات/ورديات) ومش نهائية.
-     */
+    
     public function payslip(Payroll $payroll)
     {
         $this->authorize('view', $payroll);
@@ -58,7 +55,7 @@ class PayrollController extends Controller
         ]);
     }
 
-    /** تصدير الرواتب للمحاسب (xlsx أو csv). صلاحية payroll.manage. */
+
     public function export(ExportPayrollRequest $request, PayrollExportService $exporter)
     {
         $file = $exporter->export($request->validated());

@@ -17,7 +17,7 @@ class RestaurantTable extends Model
         'floor_id', 'pos_x', 'pos_y', 'width', 'height', 'rotation', 'shape',
     ];
 
-    // رمز الـ QR سرّي: ما بيطلع بأي رد عادي (بس من GET /tables/{id}/qr لصاحب tables.manage)
+   
     protected $hidden = ['qr_token'];
 
     protected array $auditExclude = ['qr_token'];

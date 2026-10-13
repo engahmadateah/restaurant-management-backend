@@ -14,13 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class PaymentController extends Controller
 {
-    /**
-     * قائمة الدفعات.
-     *  - ?order_id=X : كل دفعات هالطلب كمصفوفة (قليلة، بدون ترقيم) - توافق مع الاستخدام القديم.
-     *  - بدونه: ترقيم صفحات (per_page، الأقصى بـ Controller::MAX_PER_PAGE) + فلاتر:
-     *    method, status, from, to (تاريخ الدفعة)، search (رقم الطلب)، والرد فيه summary
-     *    بإجماليات المقبوض (status=paid) للنتيجة المفلترة كاملة، مش بس الصفحة الحالية.
-     */
+  
     public function index(Request $request)
     {
         if ($request->filled('order_id')) {
@@ -35,7 +29,7 @@ class PaymentController extends Controller
             'search' => 'nullable|string|max:100',
         ]);
 
-        // الفلاتر بتنطبق على query جديد لكل استعلام (الإجماليات بدون ORDER BY/eager loads)
+     
         $filtered = function ($query) use ($request) {
             $query->when($request->filled('method'), fn ($q) => $q->where('method', $request->method))
                 ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
@@ -83,11 +77,9 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'order_id' => 'required|exists:orders,id',
             'method' => 'required|in:cash,card,online',
-            'amount' => 'required|numeric|min:0.01',
-            // الدفع النقدي: كم قبض الكاشير فعلياً (لازم >= amount). الباقي بيحسبه السيرفر دايماً.
-            // إذا ما انبعت: المقبوض = المبلغ والباقي صفر.
+            'amount' => 'required|numeric|min:0.01', 
             'tendered_amount' => 'nullable|numeric|min:0.01|max:99999999',
-            // 'refunded' ممنوعة هون: الاسترجاع لازم يمر بنظام الموافقة (RefundController)
+        
             'status' => 'sometimes|in:pending,paid',
         ]);
 
@@ -106,7 +98,7 @@ class PaymentController extends Controller
                 $this->assertWithinRemaining($order, Money::cents($validated['amount']));
             }
 
-            // المقبوض/الباقي بس للدفعات المؤكدة. الدفعة المعلّقة بتاخدهم لما تتأكد (update)
+      
             $cash = $status === 'paid'
                 ? $this->cashFields($validated['method'], Money::cents($validated['amount']), $validated['tendered_amount'] ?? null)
                 : $this->assertNoTendered($validated['tendered_amount'] ?? null);
@@ -132,10 +124,7 @@ class PaymentController extends Controller
         return $payment->load('order');
     }
 
-    /**
-     * الدفعة المؤكدة (paid/refunded) ما بتتعدّل مبالغها ولا حالتها: هاد سجل مالي.
-     * المسموح: تغيير طريقة الدفع، وتأكيد دفعة pending (مع تعديل المبلغ قبل التأكيد).
-     */
+ 
     public function update(Request $request, Payment $payment)
     {
         $validated = $request->validate([
@@ -149,7 +138,7 @@ class PaymentController extends Controller
             $order = Order::whereKey($payment->order_id)->lockForUpdate()->firstOrFail();
             $payment = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
 
-            // تغيير الدفعة من/إلى نقدي بعد ما انسكّر الصندوق يلي كانت فيه بيخرّب الجرد المقفول
+       
             if (isset($validated['method']) && $validated['method'] !== $payment->method
                 && ($payment->method === 'cash' || $validated['method'] === 'cash')
                 && CashDrawer::closedCovers($payment)) {
@@ -158,7 +147,7 @@ class PaymentController extends Controller
                 ]);
             }
 
-            // المقبوض/الباقي كمان سجل مالي: بينحطوا عند الإنشاء أو عند تأكيد دفعة معلّقة بس
+    
             $changesMoney = isset($validated['amount']) || isset($validated['status']) || isset($validated['tendered_amount']);
 
             if ($changesMoney && $payment->status !== 'pending') {
@@ -177,13 +166,13 @@ class PaymentController extends Controller
             $finalMethod = $validated['method'] ?? $payment->method;
             $confirming = ($validated['status'] ?? null) === 'paid';
 
-            // بنعيد حساب المقبوض/الباقي لما: تتأكد الدفعة، أو تتغيّر طريقة الدفع (كاش <-> بطاقة)
+       
             if ($payment->status !== 'pending' || $confirming) {
                 if ($confirming || isset($validated['method'])) {
                     $data += $this->cashFields($finalMethod, $newAmount, $validated['tendered_amount'] ?? null);
                 }
             } elseif (isset($validated['tendered_amount'])) {
-                // دفعة معلّقة ما بتاخد مقبوض قبل التأكيد
+       
                 $this->assertNoTendered($validated['tendered_amount']);
             }
 
@@ -194,7 +183,7 @@ class PaymentController extends Controller
         return response()->json($payment->fresh()->load('order'));
     }
 
-    // حذف دفعة (محصور بصلاحية payments.manage بالـ routes) - فقط الدفعات غير المؤكدة
+
     public function destroy(Payment $payment)
     {
         DB::transaction(function () use ($payment) {
@@ -214,11 +203,7 @@ class PaymentController extends Controller
         return response()->json(['message' => 'تم حذف الدفعة بنجاح']);
     }
 
-    /**
-     * المقبوض والباقي للدفعة المؤكدة (بالسنت، والباقي بيحسبه السيرفر ما بيثق بالعميل):
-     *  - نقدي: المقبوض >= المبلغ، والباقي = المقبوض - المبلغ. بدون مقبوض = المبلغ بالضبط.
-     *  - بطاقة/إلكتروني: ما في مقبوض (null)، وإرسال tendered_amount = 422.
-     */
+   
     private function cashFields(string $method, int $amountCents, float|int|string|null $tendered): array
     {
         if ($method !== 'cash') {
@@ -240,7 +225,7 @@ class PaymentController extends Controller
         ];
     }
 
-    /** المقبوض بس للنقدي المؤكد: بيرجع الحقلين null أو بيرفض لو انبعت مقبوض */
+
     private function assertNoTendered(float|int|string|null $tendered): array
     {
         if ($tendered !== null) {
@@ -252,7 +237,7 @@ class PaymentController extends Controller
         return ['tendered_amount' => null, 'change_amount' => null];
     }
 
-    // ما بنسمح إن مجموع الدفعات المؤكدة (الصافي) يتجاوز إجمالي الطلب
+
     private function assertWithinRemaining(Order $order, int $amountCents): void
     {
         $remaining = Money::cents($order->total) - $order->paymentTotals()['net'];

@@ -39,7 +39,7 @@ class ReviewController extends Controller
             'comment' => 'nullable|string|max:2000',
         ]);
 
-        // اللي عنده صلاحية الموافقة (أدمن/مدير) تقييمه بينشر مباشرة، غيره بده موافقة إدارية
+      
         $validated['is_approved'] = $request->user()->hasPermission('reviews.approve');
 
         $review = Review::create($validated);
@@ -72,9 +72,7 @@ class ReviewController extends Controller
         return response()->json(['message' => 'تم حذف التقييم بنجاح']);
     }
 
-    /**
-     * موافقة إدارية على تقييم معلّق (يظهر للعموم بعدها)
-     */
+   
     public function approve(Review $review)
     {
         $review->update(['is_approved' => true]);
@@ -82,9 +80,7 @@ class ReviewController extends Controller
         return response()->json($review->load(['menuItem', 'customer']));
     }
 
-    /**
-     * ملخص تقييمات صنف معيّن: المعدل وعدد التقييمات
-     */
+   
     public function ratingSummary(MenuItem $menuItem)
     {
         $approved = $menuItem->reviews()->where('is_approved', true);

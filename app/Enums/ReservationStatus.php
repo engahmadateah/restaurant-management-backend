@@ -10,7 +10,7 @@ enum ReservationStatus: string
     case Completed = 'completed';
     case NoShow = 'no_show';
 
-    /** الانتقالات المسموحة. cancelled/completed/no_show حالات نهائية. */
+
     public function allowedTransitions(): array
     {
         return match ($this) {
@@ -30,7 +30,6 @@ enum ReservationStatus: string
         return $this->allowedTransitions() === [];
     }
 
-    /** رسالة الخطأ لما يكون الانتقال "لهاي الحالة" مش مسموح */
     public function transitionError(): string
     {
         return match ($this) {
@@ -42,7 +41,6 @@ enum ReservationStatus: string
         };
     }
 
-    /** الحالات يلي بتحجز الطاولة فعلياً (بتدخل بفحص التعارض) */
     public static function activeValues(): array
     {
         return [self::Pending->value, self::Confirmed->value];

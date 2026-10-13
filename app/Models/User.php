@@ -16,8 +16,7 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use Auditable, HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
-    // بيستثني كلمة السر من سجل audit_logs (مضافة أصلاً افتراضيًا بالـ trait،
-    // موجودة هون بشكل صريح للتوضيح)
+    
     protected array $auditExclude = ['password', 'remember_token'];
 
     protected $fillable = [
@@ -56,12 +55,7 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * بيتحقق إذا المستخدم عنده صلاحية معيّنة (نظام صلاحيات دقيق فوق الـ role).
-     * الأدمن دايمًا عنده كل الصلاحيات. غير هيك: بناخد صلاحيات الـ role
-     * الافتراضية من config/permissions.php، منضيفلها extra_permissions
-     * الخاصة فيه، ومنشيل منها revoked_permissions.
-     */
+ 
     public function hasPermission(string $permission): bool
     {
         if ($this->role === 'admin') {
@@ -83,7 +77,7 @@ class User extends Authenticatable
         return in_array($permission, $granted, true);
     }
 
-    // كل الصلاحيات الفعلية للمستخدم حالياً (مفيدة لعرضها بواجهة الإدارة)
+  
     public function effectivePermissions(): array
     {
         if ($this->role === 'admin') {
@@ -102,7 +96,7 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
-    // الطلبات يلي هالمستخدم مسند إلها كسائق توصيل
+
     public function deliveries()
     {
         return $this->hasMany(Order::class, 'driver_id');
@@ -118,38 +112,37 @@ class User extends Authenticatable
         return $this->hasMany(AppNotification::class);
     }
 
-    // ورديات الحضور والانصراف تبع هاد الموظف
+    
     public function shifts()
     {
         return $this->hasMany(Shift::class);
     }
 
-    // المصاريف يلي هاد المستخدم سجّلها
+ 
     public function expenses()
     {
         return $this->hasMany(Expense::class, 'created_by');
     }
 
-    // الورديات المجدولة مسبقًا لهاد الموظف (Shift Scheduling)
+
     public function shiftSchedules()
     {
         return $this->hasMany(ShiftSchedule::class);
     }
 
-    // الوردية المفتوحة حالياً (لسا ما سكّرها) إن وجدت
+
     public function activeShift()
     {
         return $this->shifts()->whereNull('clock_out')->latest('clock_in')->first();
     }
 
-    // كشوفات الراتب تبع هاد الموظف
+   
     public function payrolls()
     {
         return $this->hasMany(Payroll::class);
     }
 
-    // بنستبدل إشعار استعادة كلمة السر الافتراضي (يلي بيعتمد على route الويب
-    // "password.reset" الغير موجود بنظام API فقط) بواحد مخصص آمن للـ API.
+   
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ApiResetPasswordNotification($token));

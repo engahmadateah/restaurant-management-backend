@@ -40,7 +40,7 @@ class UpdateReservationAction
                 || (int) $tableId !== (int) $oldTableId
                 || $party !== (int) $reservation->party_size;
 
-            // حجز منتهي (ملغي/مكتمل/ما حضر) ما بينعدّل موعده أو طاولته
+
             if ($scheduleChanged && $reservation->status->isFinal()) {
                 throw ValidationException::withMessages([
                     'status' => ['ما بينقدر تعدّل موعد أو طاولة حجز منتهي (' . $reservation->status->value . ')'],
@@ -63,13 +63,13 @@ class UpdateReservationAction
 
             $reservation->update($data);
 
-            // طاولة جديدة لحجز مؤكد: فرّج القديمة وامسك الجديدة (إذا حان وقتها)
+           
             if ($reservation->status === ReservationStatus::Confirmed && (int) $tableId !== (int) $oldTableId) {
                 $this->tables->release($oldTableId, $reservation->id);
                 $this->tables->holdIfDue($reservation);
             }
 
-            // تغيير الحالة بالتعديل العام بيمر بنفس قواعد confirm/cancel/complete
+         
             if ($newStatus !== null && $newStatus !== $reservation->status) {
                 $this->transition->apply($reservation, $newStatus);
             }

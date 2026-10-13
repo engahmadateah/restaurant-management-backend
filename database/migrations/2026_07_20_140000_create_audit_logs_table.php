@@ -6,14 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    // جدول سجل التدقيق (Audit Log): مين عدل شو وإيمتى
+   
     public function up(): void
     {
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('action'); // created / updated / deleted
-            $table->string('auditable_type'); // اسم الموديل (App\Models\Order مثلاً)
+            $table->string('action'); 
+            $table->string('auditable_type'); 
             $table->unsignedBigInteger('auditable_id');
             $table->json('old_values')->nullable();
             $table->json('new_values')->nullable();

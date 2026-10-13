@@ -9,25 +9,10 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-/**
- * مصدر واحد لتعريف الإيراد والربح بكل التقارير والداشبورد والتصدير.
- *
- * التعريفات (كل المبالغ بعملة المطعم الأساسية):
- *  - الطلبات المحسوبة: كل الطلبات غير الملغية ضمن الفترة (حسب created_at).
- *  - gross_sales  : مجموع total (شامل الضريبة ورسوم التوصيل، بعد الخصومات).
- *  - tax          : الضريبة المحصّلة (ما هي إيراد للمطعم، بتنحوّل للدولة).
- *  - refunds      : الاسترجاعات المعتمدة (approved) فقط على هالطلبات.
- *  - net_revenue  : gross_sales - refunds - tax  = الإيراد الصافي بدون ضريبة.
- *  - collected    : المقبوض الصافي فعليًا (دفعات paid/refunded - الاسترجاعات المعتمدة).
- *  - outstanding  : المتبقي غير المقبوض = max(gross_sales - refunds - collected, 0).
- *  - profit       : net_revenue - المصاريف (expenses) - كشوفات الرواتب المعتمدة/المدفوعة.
- *
- * ملاحظات: ضريبة الاسترجاع ما بتنعكس (بنطرح الاسترجاع كامل من الإيراد)،
- * وما في تكلفة مواد (COGS) بالنظام فالربح هو ربح تشغيلي قبل تكلفة المواد.
- */
+
 class SalesReport
 {
-    /** الأعمدة المجمّعة المشتركة */
+    
     private function aggregates(): array
     {
         return [
@@ -39,7 +24,7 @@ class SalesReport
         ];
     }
 
-    /** الطلبات المحسوبة بالفترة + مجموع الاسترجاعات والدفعات لكل طلب (1:1 بدون تضاعف صفوف) */
+
     private function orders(CarbonInterface $from, CarbonInterface $to): Builder
     {
         $refunds = DB::table('refunds')
@@ -59,7 +44,7 @@ class SalesReport
             ->where('orders.status', '!=', 'cancelled');
     }
 
-    /** يحوّل صف مجمّع لأرقام نهائية مقرّبة */
+
     private function shape(object $row): array
     {
         $count = (int) $row->orders_count;
@@ -75,7 +60,7 @@ class SalesReport
             'tax' => round($tax, 2),
             'refunds' => round($refunds, 2),
             'net_revenue' => round($net, 2),
-            'revenue' => round($net, 2), // اسم قديم للتوافق مع الواجهة: = net_revenue
+            'revenue' => round($net, 2), 
             'collected' => round($collected, 2),
             'outstanding' => round(max($gross - $refunds - $collected, 0), 2),
             'average_order_value' => $count > 0 ? round($net / $count, 2) : 0.0,
@@ -122,10 +107,7 @@ class SalesReport
             ->map(fn ($row) => ['user_id' => (int) $row->user_id] + $this->shape($row));
     }
 
-    /**
-     * أسطر الأصناف بعد توزيع خصم الطلب بالتناسب، شاملة الخيارات الإضافية، بدون ضريبة
-     * وبدون رسوم التوصيل (قبل الاسترجاعات). مجموعها = مجموع (subtotal - discount) للطلبات.
-     */
+   
     private function itemLines(CarbonInterface $from, CarbonInterface $to): Builder
     {
         $extras = DB::table('order_item_modifier')
@@ -192,7 +174,7 @@ class SalesReport
             ]);
     }
 
-    /** الربح التشغيلي = الإيراد الصافي - المصاريف - الرواتب المعتمدة */
+  
     public function profit(CarbonInterface $from, CarbonInterface $to): array
     {
         $summary = $this->summary($from, $to);
@@ -206,7 +188,7 @@ class SalesReport
             ->groupBy('category')
             ->get();
 
-        // كلفة صاحب العمل = gross_pay (الاستقطاعات بتنخصم من الموظف، مش بتقلل الكلفة)
+      
         $payroll = round((float) Payroll::whereIn('status', ['approved', 'paid'])
             ->whereBetween('period_end', [$from->toDateString(), $to->toDateString()])
             ->sum('gross_pay'), 2);

@@ -19,7 +19,7 @@ class CreateReservationAction
         $reservation = DB::transaction(function () use ($data, $by) {
             $this->tables->assertNotInThePast($data['reservation_date'], $data['reservation_time']);
 
-            // قفل صف الطاولة: طلبين حجز متزامنين على نفس الطاولة ما بيعدّوا الفحص سوا (double booking)
+           
             $this->tables->assertFits(
                 $data['table_id'] ?? null,
                 (int) $data['party_size'],

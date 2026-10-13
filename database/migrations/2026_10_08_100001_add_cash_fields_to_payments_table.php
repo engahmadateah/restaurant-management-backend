@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-// الدفع النقدي: المبلغ المقبوض فعلياً من الزبون + الباقي المرجَّع له.
-// amount يضل المبلغ المحسوب على الطلب (ما بيتغيّر معناه)، فالتقارير ما بتتأثر.
+
 return new class extends Migration
 {
     public function up(): void
@@ -16,7 +15,7 @@ return new class extends Migration
             $table->decimal('change_amount', 10, 2)->nullable()->after('tendered_amount');
         });
 
-        // الدفعات النقدية القديمة: المقبوض = المبلغ والباقي صفر
+   
         DB::table('payments')->where('method', 'cash')->update([
             'tendered_amount' => DB::raw('amount'),
             'change_amount' => 0,

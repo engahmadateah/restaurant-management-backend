@@ -17,7 +17,7 @@ class Currency extends Model
         'is_active' => 'boolean',
     ];
 
-    // بيحوّل مبلغ (مخزّن دايمًا بالعملة الأساسية) لهاد العملة
+  
     public function convert(float $amountInBaseCurrency): float
     {
         return round($amountInBaseCurrency * (float) $this->exchange_rate, 2);

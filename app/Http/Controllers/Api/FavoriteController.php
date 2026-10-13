@@ -10,13 +10,13 @@ use Illuminate\Validation\Rule;
 
 class FavoriteController extends Controller
 {
-    // قائمة الأصناف المفضّلة عند زبون معيّن
+  
     public function index(Customer $customer)
     {
         return $customer->favorites()->with('category:id,name')->get();
     }
 
-    // إضافة صنف لمفضّلة الزبون
+
     public function store(Request $request, Customer $customer)
     {
         $validated = $request->validate([
@@ -32,7 +32,7 @@ class FavoriteController extends Controller
         return response()->json($customer->favorites()->with('category:id,name')->get(), 201);
     }
 
-    // حذف صنف من مفضّلة الزبون
+
     public function destroy(Customer $customer, MenuItem $menuItem)
     {
         $customer->favorites()->detach($menuItem->id);

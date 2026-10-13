@@ -10,17 +10,7 @@ use App\Support\Money;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
-/**
- * تقرير نهاية اليوم (Z-Report): ملخّص يوم واحد بصفحة وحدة.
- *
- *  - المبيعات: طلبات اليوم غير الملغية (نفس تعريف SalesReport، فالأرقام بتطابق صفحة التقارير).
- *  - الدفعات: دفعات انسجّلت اليوم (paid/refunded) حسب طريقة الدفع. هاد "المقبوض" الفعلي.
- *  - الاسترجاعات: يلي انوافق عليها اليوم (processed_at)، بغض النظر عن تاريخ الطلب الأصلي،
- *    لأن هاد يلي طلع من الصندوق اليوم. فممكن تختلف عن refunds بصفحة التقارير (يلي بتنسب
- *    الاسترجاع ليوم الطلب).
- *  - الصناديق: يلي انسكّرت اليوم مع الفروقات.
- *  - الحركات النقدية: مصاريف/سحوبات/إيداعات انسجّلت اليوم على أي صندوق.
- */
+
 class ZReport
 {
     public function __construct(private SalesReport $sales)
@@ -45,7 +35,6 @@ class ZReport
             ->where('status', 'cancelled')
             ->count();
 
-        // ---- الدفعات حسب الطريقة ----
         $payments = Payment::query()
             ->whereIn('status', ['paid', 'refunded'])
             ->whereBetween('created_at', [$from, $to])
@@ -67,14 +56,14 @@ class ZReport
             ];
         }
 
-        // ---- الاسترجاعات المعتمدة اليوم ----
+  
         $refundsQuery = fn () => Refund::query()->where('status', 'approved')->whereBetween('processed_at', [$from, $to]);
         $refundsTotalC = Money::cents($refundsQuery()->sum('amount'));
         $cashRefundsC = Money::cents(
             $refundsQuery()->whereHas('payment', fn ($q) => $q->where('method', 'cash'))->sum('amount')
         );
 
-        // ---- الصناديق المسكّرة اليوم ----
+    
         $drawers = CashDrawer::with('user:id,name')
             ->whereBetween('closed_at', [$from, $to])
             ->orderBy('closed_at')
@@ -87,7 +76,7 @@ class ZReport
             $diffC < 0 ? $shortageC += $diffC : $overageC += $diffC;
         }
 
-        // ---- الحركات النقدية المسجّلة اليوم ----
+ 
         $movementRows = CashMovement::query()
             ->whereBetween('created_at', [$from, $to])
             ->groupBy('type')
@@ -123,12 +112,12 @@ class ZReport
                 'withdrawals' => $movementTotal(CashMovement::TYPE_WITHDRAWAL),
                 'deposits' => $movementTotal(CashMovement::TYPE_DEPOSIT),
             ],
-            // المقبوض - المرجَّع اليوم
+        
             'net_collected' => Money::fromCents($collectedC - $refundsTotalC),
             'drawers' => [
                 'count' => $drawers->count(),
                 'open_now' => CashDrawer::whereNull('closed_at')->count(),
-                'shortage' => Money::fromCents($shortageC), // سالب أو صفر
+                'shortage' => Money::fromCents($shortageC), 
                 'overage' => Money::fromCents($overageC),
                 'net_difference' => Money::fromCents($shortageC + $overageC),
                 'items' => $drawers->map(fn (CashDrawer $d) => [

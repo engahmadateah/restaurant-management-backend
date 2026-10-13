@@ -16,7 +16,7 @@ class UpdatePayrollRequest extends FormRequest
         $payroll = $this->route('payroll');
 
         return [
-            // الاستقطاعات ما بتتعدى إجمالي الراتب (قبل كان net_pay ممكن يصير سالب)
+          
             'deductions' => ['sometimes', 'numeric', 'min:0', 'max:' . $payroll->gross_pay],
             'notes' => 'nullable|string',
         ];

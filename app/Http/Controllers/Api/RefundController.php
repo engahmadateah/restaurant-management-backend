@@ -12,12 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * نظام استرجاع الأموال (Refunds):
- * - أي مستخدم مسجل دخول (كاشير/أدمن) يقدر يطلب استرجاع لطلب معيّن -> الحالة pending
- * - الأدمن بس هو يلي يقدر يوافق أو يرفض (نفس منطق role:admin بباقي النظام)
- * - عند الموافقة: تنعمل دفعة سالبة (أو تتحدّث حالة الدفعة الأصلية) وتتحدّث حالة دفع الطلب تلقائيًا
- */
+
 class RefundController extends Controller
 {
     public function index(Request $request)
@@ -45,11 +40,11 @@ class RefundController extends Controller
         ]);
 
         $refund = DB::transaction(function () use ($validated, $request) {
-            // قفل الطلب حتى طلبين استرجاع متزامنين ما يتجاوزوا المتاح سوا
+            
             $order = Order::whereKey($validated['order_id'])->lockForUpdate()->firstOrFail();
             $amount = Money::cents($validated['amount']);
 
-            // المتاح = المقبوض فعليًا - المعتمد - المحجوز بطلبات معلّقة
+ 
             $t = $order->paymentTotals();
             $available = $t['gross'] - $t['approved'] - $t['pending'];
 
@@ -59,7 +54,7 @@ class RefundController extends Controller
                 ]);
             }
 
-            // لو محددة دفعة معيّنة: لازم تكون تابعة لنفس الطلب، والمبلغ ما يتجاوز المتبقي منها
+        
             if (! empty($validated['payment_id'])) {
                 $payment = Payment::whereKey($validated['payment_id'])->where('order_id', $order->id)->first();
 
@@ -107,7 +102,7 @@ class RefundController extends Controller
         return $refund->load(['order', 'payment', 'requestedBy', 'processedBy']);
     }
 
-    // موافقة الأدمن على طلب الاسترجاع - يحدّث حالة الدفعة وحالة دفع الطلب
+   
     public function approve(Request $request, Refund $refund)
     {
         $validated = $request->validate([
@@ -116,7 +111,7 @@ class RefundController extends Controller
 
         $refund = DB::transaction(function () use ($validated, $request, $refund) {
             $order = Order::whereKey($refund->order_id)->lockForUpdate()->firstOrFail();
-            // نعيد قراءة الاسترجاع بعد القفل: ممكن حدا تاني عالجه بنفس اللحظة
+           
             $refund = Refund::whereKey($refund->id)->lockForUpdate()->firstOrFail();
 
             if ($refund->status !== 'pending') {
@@ -125,7 +120,7 @@ class RefundController extends Controller
                 ]);
             }
 
-            // تحقق نهائي وقت الموافقة: المقبوض - المعتمد لازم يغطي هاد المبلغ
+           
             $t = $order->paymentTotals();
             if (Money::cents($refund->amount) > $t['net']) {
                 throw ValidationException::withMessages([
@@ -140,7 +135,7 @@ class RefundController extends Controller
                 'admin_note' => $validated['admin_note'] ?? null,
             ]);
 
-            // الدفعة بتتعلّم refunded بس لما مجموع استرجاعاتها المعتمدة يغطيها بالكامل
+            
             if ($refund->payment_id) {
                 $payment = Payment::find($refund->payment_id);
                 if ($payment) {
@@ -167,7 +162,7 @@ class RefundController extends Controller
         return response()->json($refund->fresh()->load(['order', 'payment', 'processedBy']));
     }
 
-    // رفض طلب الاسترجاع
+   
     public function reject(Request $request, Refund $refund)
     {
         if ($refund->status !== 'pending') {

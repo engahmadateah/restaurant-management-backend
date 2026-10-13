@@ -17,18 +17,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-/**
- * الواجهة العامة للزبون (بدون تسجيل دخول): قائمة الطعام، الطلب من الطاولة عبر QR، الطلب الأونلاين،
- * وتتبّع حالة الطلب.
- *
- * مبادئ الأمان:
- *  - كل شي افتراضياً مقفول: الأدمن بيفعّل qr_ordering_enabled / online_ordering_enabled من الإعدادات.
- *  - الأسعار والضريبة والتوصيل بتنحسب من السيرفر بنفس OrderService تبع الكاشير (الزبون ما بيبعت أي مبلغ).
- *  - الطلب من طاولة لازم يحمل qr_token تبع هالطاولة (موجود بس بالـ QR المطبوع عليها).
- *  - الردود محددة بالاسم (whitelist): ما بينعرض مخزون ولا ضريبة ولا بيانات زبائن ولا موظفين.
- *  - الإرسال محمي بـ throttle (public-orders) وبمعرّف طلب من المتصفح يمنع التكرار.
- *  - تتبّع الطلب بالرمز العشوائي (public_token) وبيرجّع الحالة والأصناف والمبالغ بس، بدون هاتف/عنوان.
- */
+
 class PublicOrderingController extends Controller
 {
     public function __construct(private OrderService $orders)
@@ -40,7 +29,7 @@ class PublicOrderingController extends Controller
         return Setting::get($key, '0') === '1';
     }
 
-    /** معلومات المطعم وحالة الطلب الأونلاين (للصفحة العامة) */
+
     public function info()
     {
         return response()->json([
@@ -55,7 +44,7 @@ class PublicOrderingController extends Controller
         ]);
     }
 
-    /** القائمة: التصنيفات الفعّالة والأصناف المتاحة فقط، مع الخيارات الإضافية المتاحة */
+   
     public function menu(Request $request)
     {
         $lang = preg_match('/^[a-z]{2}$/', (string) $request->query('lang')) ? $request->query('lang') : null;
@@ -96,12 +85,12 @@ class PublicOrderingController extends Controller
             'name' => $item->translate('name', $lang),
             'description' => $item->translate('description', $lang),
             'price' => (float) $item->price,
-            // نسبة الضريبة الفعلية للصنف (بتنضاف فوق السعر): الواجهة بتعرضها كتقدير قبل الإرسال
-            // والرقم النهائي دايماً من السيرفر بعد الإرسال
+          
+            
             'tax_rate' => $item->effectiveTaxRate($defaultTax),
-            // مسار الصورة نسبةً لـ /storage (نفس ما بتستخدمه لوحة الإدارة)
+           
             'image' => $item->image,
-            // بنعرض "خلص" بس (ما بنكشف كمية المخزون)
+           
             'sold_out' => $item->track_stock && $item->stock_quantity <= 0,
             'modifier_groups' => $item->modifierGroups
                 ->map(fn ($group) => [
@@ -120,7 +109,7 @@ class PublicOrderingController extends Controller
         ];
     }
 
-    /** صفحة الـ QR: رقم الطاولة وهل الطلب من الطاولة مفعّل */
+    
     public function table(string $token)
     {
         $table = $this->findTable($token);
@@ -134,7 +123,7 @@ class PublicOrderingController extends Controller
 
     private function findTable(string $token): ?RestaurantTable
     {
-        // الرمز عشوائي 40 حرف: أي شي غير هيك مستحيل يكون صحيح
+        
         return preg_match('/^[A-Za-z0-9]{40}$/', $token)
             ? RestaurantTable::where('qr_token', $token)->first()
             : null;
@@ -165,7 +154,7 @@ class PublicOrderingController extends Controller
             return response()->json(['message' => 'الطلب غير متاح حالياً، اطلب من الموظف'], 403);
         }
 
-        // إعادة إرسال نفس الطلب (ضغطتين/إعادة محاولة): بنرجّع الطلب الأول بدل ما نكرّره
+       
         $existing = Order::where('public_request_id', $data['client_request_id'])->first();
         if ($existing) {
             return response()->json($this->payload($existing), 200);
@@ -210,7 +199,7 @@ class PublicOrderingController extends Controller
                     'public_request_id' => $data['client_request_id'],
                 ], null);
 
-                // الحد الأدنى للطلب الأونلاين: لو أقل بنتراجع عن كل شي (مخزون وإشعارات) بنفس الـ transaction
+                
                 $min = (float) Setting::get('online_min_order', 0);
                 if ($type !== 'dine_in' && $min > 0 && (float) $order->subtotal < $min) {
                     throw ValidationException::withMessages([
@@ -221,7 +210,7 @@ class PublicOrderingController extends Controller
                 return $order;
             });
         } catch (UniqueConstraintViolationException $e) {
-            // طلبين متزامنين بنفس معرّف الطلب: التاني بيرجّع الأول
+          
             $existing = Order::where('public_request_id', $data['client_request_id'])->first();
             if ($existing) {
                 return response()->json($this->payload($existing), 200);
@@ -233,7 +222,7 @@ class PublicOrderingController extends Controller
         return response()->json($this->payload($order), 201);
     }
 
-    /** زبون بنفس الهاتف = نفس السجل (ما منغيّر اسمه)؛ الهاتف unique بجدول الزبائن */
+  
     private function resolveCustomer(string $name, string $phone): Customer
     {
         try {
@@ -243,7 +232,7 @@ class PublicOrderingController extends Controller
         }
     }
 
-    /** حالة الطلب للزبون (بالرمز العشوائي) */
+   
     public function track(string $token)
     {
         abort_unless(preg_match('/^[A-Za-z0-9]{40}$/', $token), 404);

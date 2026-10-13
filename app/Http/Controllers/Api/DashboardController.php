@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    // ملخص أرقام سريع لصفحة لوحة التحكم الرئيسية
+  
     public function stats(Request $request, SalesReport $report)
     {
         $today = now()->startOfDay();
@@ -29,12 +29,9 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // الأرقام المالية بس لمن عنده reports.view (الشيف والسائق بيشوفوا الداشبورد بدون إيرادات)
         $money = [];
         if ($request->user()->hasPermission('reports.view')) {
-            // إيرادات آخر 7 أيام (لرسم بياني بالداشبورد) - بنعبّي الأيام الفاضية بصفر
-            // حتى المحور الزمني يضل متصل حتى لو ما كان في مبيعات بيوم معيّن.
-            // نفس تعريف الإيراد بالتقارير (صافي بدون ضريبة وبعد الاسترجاعات)
+           
             $revenueRows = $report->byDay($today->copy()->subDays(6), now()->endOfDay())
                 ->pluck('net_revenue', 'date');
 
@@ -74,7 +71,7 @@ class DashboardController extends Controller
                 'name' => $row->menuItem?->name,
                 'quantity' => (int) $row->total_qty,
             ]),
-            // قبل: كان يحسب delivery_status != delivered فيدخل فيه الطلبات الملغية
+          
             'deliveries_active' => Order::where('order_type', 'delivery')
                 ->where('status', '!=', 'cancelled')
                 ->whereIn('delivery_status', ['pending', 'assigned', 'out_for_delivery'])

@@ -69,8 +69,8 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        // حذف التصنيف بيمسح أصنافه بالـ cascade على مستوى قاعدة البيانات، فما منسمح فيه
-        // إذا فيه أصناف ظاهرة، أو أصناف مؤرشفة (محذوفة) إلها طلبات سابقة (سجل مبيعات).
+       
+
         if ($category->menuItems()->exists()) {
             throw ValidationException::withMessages([
                 'category' => ['التصنيف فيه أصناف. انقلها لتصنيف ثاني أو احذفها أول.'],

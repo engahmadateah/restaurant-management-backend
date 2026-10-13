@@ -10,13 +10,13 @@ class PayrollPolicy
 {
     private const MANAGE = 'payroll.manage';
 
-    /** أي موظف بيشوف قائمة كشوفاته (الفلترة بتصير بالـ query: Payroll::visibleTo) */
+  
     public function viewAny(User $user): bool
     {
         return true;
     }
 
-    /** كشف الموظف نفسه، أو صاحب payroll.manage. بينطبق على show و payslip. */
+  
     public function view(User $user, Payroll $payroll): Response|bool
     {
         if ($user->hasPermission(self::MANAGE) || $payroll->user_id === $user->id) {
@@ -26,7 +26,7 @@ class PayrollPolicy
         return Response::deny('ما عندك صلاحية توصل لهاد الكشف');
     }
 
-    /** على مستوى الصنف: generate / export */
+
     public function manage(User $user): bool
     {
         return $user->hasPermission(self::MANAGE);

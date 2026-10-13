@@ -14,28 +14,21 @@ use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
-    /**
-     * قائمة الطلبات (مرقّمة) مع فلاتر على السيرفر، حتى البحث والتاريخ ما يشتغلوا بس على الصفحة الحالية:
-     *  status, order_type, payment_status (unpaid|partial|paid|refunded|outstanding = unpaid+partial)،
-     *  from/to (تاريخ الطلب، شاملين)، search (رقم الطلب / اسم أو هاتف الزبون / رقم الطاولة).
-     * الرد المرقّم فيه summary للنتيجة المفلترة كاملة (مش بس الصفحة):
-     *  counts حسب الحالة (بدون فلتر الحالة نفسه ليضل ممكن التنقل بينها)، revenue وunpaid بكل الفلاتر.
-     * per_page=all بيرجّع مصفوفة بدون summary (بسقف ALL_ROWS_CAP) للاستخدام القديم.
-     */
+   
     public function index(Request $request)
     {
         $request->validate([
             'status' => 'nullable|in:pending,preparing,ready,completed,cancelled',
             'order_type' => 'nullable|in:dine_in,delivery,takeaway',
             'payment_status' => 'nullable|in:unpaid,partial,paid,refunded,outstanding',
-            // pos = الكاشير، qr = طلب من طاولة، online = أونلاين
+           
             'source' => 'nullable|in:pos,qr,online',
             'from' => 'nullable|date',
             'to' => 'nullable|date|after_or_equal:from',
             'search' => 'nullable|string|max:100',
         ]);
 
-        // كل الفلاتر على query جديد (الملخص بدون eager loads/ORDER BY). $withStatus=false لعدّادات الحالات
+ 
         $filtered = function ($query, bool $withStatus = true) use ($request) {
             $query->when($withStatus && $request->filled('status'), fn ($q) => $q->where('status', $request->status))
                 ->when($request->filled('order_type'), fn ($q) => $q->where('order_type', $request->order_type))

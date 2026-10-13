@@ -19,16 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->statefulApi();
 
-        // بنظام API ما فيه صفحة login لنعمل redirect إلها. الافتراضي كان يستدعي
-        // route('login') (مش موجود) فيطلع 500 بدل 401 لما العميل ما يبعت Accept: application/json.
+     
         $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*') ? null : '/');
 
-        // بيفعّل throttle:api عالمجموعة الافتراضية لكل مسارات api.php - بيربطها
-        // بالحد المسجّل بـ AppServiceProvider::boot() (RateLimiter::for('api', ...))
+       
         $middleware->throttleApi();
 
-        // منسجل الحارس تحت اسم مستعار "role" حتى نقدر نستخدمه
-        // بالـ routes متل: ->middleware('role:admin')
+     
         $middleware->alias([
             'role' => CheckRole::class,
             'permission' => CheckPermission::class,
@@ -38,9 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // كل ردود /api/* بتكون JSON حتى لو العميل ما بعت Accept: application/json.
-        // بدون هاد، طلب بدون الهيدر بيحاول يعمل redirect لـ route('login') الغير موجود
-        // فبيطلع 500 بدل 401.
+    
         $exceptions->shouldRenderJsonWhen(
             fn ($request, \Throwable $e) => $request->is('api/*') || $request->expectsJson()
         );

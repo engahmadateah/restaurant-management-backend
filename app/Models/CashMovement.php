@@ -16,7 +16,7 @@ class CashMovement extends Model
 
     public const TYPES = [self::TYPE_EXPENSE, self::TYPE_WITHDRAWAL, self::TYPE_DEPOSIT];
 
-    /** الأنواع يلي بتطلّع كاش من الصندوق */
+ 
     public const OUTFLOW_TYPES = [self::TYPE_EXPENSE, self::TYPE_WITHDRAWAL];
 
     protected $fillable = ['cash_drawer_id', 'user_id', 'type', 'amount', 'reason', 'expense_id'];

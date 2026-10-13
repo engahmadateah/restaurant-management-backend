@@ -14,7 +14,7 @@ class Category extends Model
 
     protected $fillable = ['name', 'translations', 'slug', 'is_active', 'sort_order', 'tax_rate'];
 
-    // الحقول القابلة للترجمة عن طريق HasTranslations::translate()
+    
     protected array $translatable = ['name'];
 
     protected $casts = [

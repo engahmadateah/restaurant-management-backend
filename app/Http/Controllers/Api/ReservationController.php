@@ -60,28 +60,25 @@ class ReservationController extends Controller
         return response()->json(['message' => 'تم حذف الحجز بنجاح']);
     }
 
-    /**
-     * تأكيد الحجز. الطاولة بتصير "محجوزة" فقط لما يقرب موعد الحجز (شوف Reservation::shouldHoldTable
-     * والأمر reservations:sync-tables)، مش من لحظة التأكيد لو الحجز بعد أيام.
-     */
+   
     public function confirm(Reservation $reservation, TransitionReservationAction $transition)
     {
         return $this->transitionTo($reservation, ReservationStatus::Confirmed, $transition);
     }
 
-    /** إلغاء الحجز - بيفرّج الطاولة إذا ما في حجز مؤكد تاني ماسكها */
+   
     public function cancel(CancelReservationRequest $request, Reservation $reservation, CancelReservationAction $cancel)
     {
         return $this->respond($cancel->execute($reservation, $request->validated('reason')));
     }
 
-    /** تعليم الحجز كمكتمل (الزبون وصل وقعد عالطاولة) */
+  
     public function complete(Reservation $reservation, TransitionReservationAction $transition)
     {
         return $this->transitionTo($reservation, ReservationStatus::Completed, $transition);
     }
 
-    /** الزبون ما حضر: بيفرّج الطاولة */
+  
     public function noShow(Reservation $reservation, TransitionReservationAction $transition)
     {
         return $this->transitionTo($reservation, ReservationStatus::NoShow, $transition);

@@ -11,7 +11,7 @@ class CashDrawer extends Model
 {
     use Auditable;
 
-    /** صندوق مفتوح أكتر من هالمدة = على الأغلب منسي، الواجهة بتنبّه */
+  
     public const STALE_AFTER_HOURS = 24;
 
     protected $fillable = [
@@ -39,8 +39,7 @@ class CashDrawer extends Model
         return $this->belongsTo(User::class)->withTrashed();
     }
 
-    // اسمها closer (مش closedBy): relation باسم closedBy بتنكتب بالـ JSON تحت المفتاح closed_by
-    // وبتطمس عمود closed_by (الـ id)
+ 
     public function closer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'closed_by')->withTrashed();
@@ -66,7 +65,7 @@ class CashDrawer extends Model
         return $this->isOpen() && $this->opened_at->lte(now()->subHours(self::STALE_AFTER_HOURS));
     }
 
-    /** هل الدفعة وقعت ضمن صندوق مسكّر؟ (لحماية الأرقام المقفولة من التعديل) */
+  
     public static function closedCovers(Payment $payment): bool
     {
         if ($payment->received_by === null) {

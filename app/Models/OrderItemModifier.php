@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * سجل الخيار المختار فعليًا على صنف جوا طلب معيّن (اسم وسعر كـ snapshot).
- */
+
 class OrderItemModifier extends Model
 {
     use HasFactory;

@@ -13,11 +13,7 @@ use App\Services\ZReport;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-/**
- * كل أرقام الإيراد والربح محسوبة من App\Services\SalesReport (تعريف واحد للكل،
- * شوف التعليق بأول الكلاس هناك): الإيراد الصافي = المبيعات - الاسترجاعات - الضريبة،
- * والربح = الإيراد الصافي - المصاريف - الرواتب المعتمدة.
- */
+
 class ReportController extends Controller
 {
     public function __construct(private SalesReport $report)
@@ -27,7 +23,7 @@ class ReportController extends Controller
     /** @return array{0: \Illuminate\Support\Carbon, 1: \Illuminate\Support\Carbon} */
     private function dateRange(Request $request): array
     {
-        // تاريخ غلط أو from > to كانت تعطي 500 أو نتيجة فاضية بصمت
+   
         $request->validate([
             'from' => 'nullable|date',
             'to' => 'nullable|date|after_or_equal:from',
@@ -56,14 +52,12 @@ class ReportController extends Controller
             'by_order_type' => $this->report->byOrderType($from, $to)->values(),
         ]);
     }
-
-    /** تقرير نهاية اليوم (JSON). ?date=YYYY-MM-DD، الافتراضي اليوم */
-    public function zReport(Request $request, ZReport $z)
+   public function zReport(Request $request, ZReport $z)
     {
         return response()->json($z->forDay($this->zDay($request)));
     }
 
-    /** نفس التقرير كـ PDF للطباعة (reports.export) */
+  
     public function zReportPdf(Request $request, ZReport $z)
     {
         $report = $z->forDay($this->zDay($request));
@@ -139,13 +133,7 @@ class ReportController extends Controller
         ] + $row)->values()->all();
     }
 
-    /**
-     * تصدير أي تقرير من التقارير فوق كـ CSV (يفتح مباشرة بإكسل) أو PDF.
-     * GET /reports/export?type=sales|top-items|revenue-by-category|profit|staff-performance&format=csv|pdf&from=&to=
-     *
-     * (تصدير xlsx حقيقي بيحتاج مكتبة PhpSpreadsheet غير متوفرة هلق بدون
-     * وصول composer/packagist بالسيرفر - شوف App\Services\CsvExporter)
-     */
+    
     public function export(Request $request)
     {
         $validated = $request->validate([

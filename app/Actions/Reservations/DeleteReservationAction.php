@@ -16,7 +16,7 @@ class DeleteReservationAction
         DB::transaction(function () use ($reservation) {
             $reservation = Reservation::whereKey($reservation->id)->lockForUpdate()->firstOrFail();
 
-            // حذف حجز مؤكد ماسك طاولة لازم يفرّجها
+          
             if ($reservation->status === ReservationStatus::Confirmed) {
                 $this->tables->release($reservation->table_id, $reservation->id);
             }

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class CurrencyController extends Controller
 {
-    // متاحة لأي مستخدم مسجل دخول (الفرونت بيحتاجها يعبي قائمة اختيار العملة)
+ 
     public function index(Request $request)
     {
         $query = Currency::query();
@@ -31,7 +31,7 @@ class CurrencyController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        // أول عملة تنضاف تصير هي الافتراضية تلقائيًا
+     
         $validated['is_default'] = ! Currency::query()->exists();
 
         $currency = Currency::create($validated);
@@ -64,8 +64,6 @@ class CurrencyController extends Controller
         return response()->json(['message' => 'تم الحذف بنجاح']);
     }
 
-    // تعيين عملة معيّنة كأساسية (كل الأسعار بالنظام محسوبة عليها،
-    // exchange_rate تبعها تلقائيًا بيصير 1)
     public function setDefault(Currency $currency)
     {
         DB::transaction(function () use ($currency) {

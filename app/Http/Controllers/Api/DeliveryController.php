@@ -10,20 +10,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * إدارة طلبات التوصيل: تعيين سائق ومتابعة حالة التسليم
- * pending -> assigned -> out_for_delivery -> delivered
- */
+
 class DeliveryController extends Controller
 {
-    // مين بيدير كل التوصيلات؟ يلي معه orders.manage (كاشير/مدير/أدمن). غيره (سائق)
-    // بيشوف ويحدّث الطلبات المسندة إله هو بس.
+   
     private function managesAllDeliveries(Request $request): bool
     {
         return $request->user()->hasPermission('orders.manage');
     }
 
-    // كل طلبات التوصيل النشطة (يلي لسا ما توصلت ولا انلغت)
+
     public function index(Request $request)
     {
         $query = Order::with(['items.menuItem', 'customer', 'driver'])
@@ -60,7 +56,7 @@ class DeliveryController extends Controller
         DB::transaction(function () use ($order, $driver) {
             $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
 
-            // ما بينعيّن/ينبدّل سائق لطلب ملغي أو مكتمل أو خرج للتوصيل فعلاً
+   
             if (in_array($order->status, ['completed', 'cancelled'], true)
                 || ! in_array($order->delivery_status, ['pending', 'assigned'], true)) {
                 throw ValidationException::withMessages([
@@ -93,7 +89,7 @@ class DeliveryController extends Controller
             ]);
         }
 
-        // السائق بيحدّث حالة طلباته هو بس (بدون هاد الفحص أي سائق كان يسكّر طلب غيره)
+
         if (! $this->managesAllDeliveries($request) && $order->driver_id !== $request->user()->id) {
             return response()->json(['message' => 'هاد الطلب مش مسند إلك'], 403);
         }
@@ -110,7 +106,7 @@ class DeliveryController extends Controller
         DB::transaction(function () use ($order, $validated, $validTransitions) {
             $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
 
-            // طلب ملغي/مكتمل ما بيتحرك. markCompleted() كان رح يقلب الملغي لمكتمل.
+   
             if (in_array($order->status, ['completed', 'cancelled'], true)) {
                 throw ValidationException::withMessages([
                     'status' => ['ما بينقدر يتحدّث توصيل طلب حالته "' . $order->status . '"'],
@@ -123,7 +119,7 @@ class DeliveryController extends Controller
                 ]);
             }
 
-            // الطلب لازم يكون جاهز من المطبخ قبل ما يطلع للتوصيل
+
             if ($validated['delivery_status'] === 'out_for_delivery' && $order->status !== 'ready') {
                 throw ValidationException::withMessages([
                     'status' => ['الطلب لسا مش جاهز من المطبخ'],

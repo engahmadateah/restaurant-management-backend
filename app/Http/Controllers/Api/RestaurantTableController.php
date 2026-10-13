@@ -66,10 +66,7 @@ class RestaurantTableController extends Controller
         return response()->json(['message' => 'تم الحذف بنجاح']);
     }
 
-    /**
-     * رمز الـ QR تبع الطاولة (بيتولّد أول مرة بس). الرابط اللي بينطبع على الـ QR بيبنيه الفرونت:
-     * {origin}/t/{token}. بدون الرمز ما بيتقبل أي طلب عام لهالطاولة.
-     */
+    
     public function qr(RestaurantTable $restaurantTable)
     {
         if (! $restaurantTable->qr_token) {
@@ -79,7 +76,7 @@ class RestaurantTableController extends Controller
         return $this->qrResponse($restaurantTable);
     }
 
-    /** تغيير الرمز (انسرق/اتصوّر الـ QR): الـ QR القديم بيبطل فوراً */
+  
     public function rotateQr(RestaurantTable $restaurantTable)
     {
         $restaurantTable->forceFill(['qr_token' => Str::random(40)])->save();

@@ -8,27 +8,12 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-/**
- * Idempotency-Key على الطلبات يلي بتغيّر مال (إنشاء طلب، تسجيل دفعة).
- *
- * المشكلة: الكاشير بيضغط "دفع"، النت بينقطع قبل ما يوصل الرد، فبيضغط مرة تانية
- * فبينسجّل نفس الدفعة مرتين. مع هالهيدر الفرونت بيبعت نفس المفتاح بالمحاولة
- * التانية والسيرفر بيرجّع نفس الرد الأول بدل ما ينفّذ العملية من جديد.
- *
- * القواعد:
- *  - الهيدر اختياري: بدونه الطلب بيمر عادي (توافق مع أي عميل قديم).
- *  - المفتاح خاص بكل مستخدم.
- *  - نفس المفتاح + طلب مختلف (مسار أو محتوى) = 422، لأنه غالباً خطأ برمجي بالعميل.
- *  - نفس المفتاح والطلب الأول لسا شغّال = 409 (حاول بعد ثواني).
- *  - بنخزّن ردود النجاح (2xx) بس. الفشل (422/403/500...) بيحرّر المفتاح حتى
- *    المحاولة التانية بعد التصحيح تتنفّذ فعلاً.
- *  - الرد المعاد بيجي بهيدر Idempotent-Replayed: true
- */
+
 class EnforceIdempotency
 {
     public const HEADER = 'Idempotency-Key';
 
-    /** بعد هالمدة بنعتبر الطلب "العالق" ميّت (انقطعت العملية) ونسمح بإعادة التنفيذ */
+
     private const STALE_LOCK_SECONDS = 120;
 
     public function handle(Request $request, Closure $next): Response
@@ -53,7 +38,6 @@ class EnforceIdempotency
         $path = '/' . ltrim($request->path(), '/');
         $hash = hash('sha256', $request->method() . '|' . $path . '|' . $request->getContent());
 
-        // insertOrIgnore بدل try/catch على الـ unique: ما بيخرّب الـ transaction على Postgres
         $reserved = DB::table('idempotency_keys')->insertOrIgnore([
             'user_id' => $userId,
             'key' => $key,
@@ -68,7 +52,7 @@ class EnforceIdempotency
         if (! $reserved) {
             $existing = DB::table('idempotency_keys')->where('user_id', $userId)->where('key', $key)->first();
 
-            // انحذف بين الـ insert والـ select (طلب فشل وحرّر المفتاح): جرّب من جديد
+           
             if (! $existing) {
                 return $this->handle($request, $next);
             }
@@ -83,7 +67,7 @@ class EnforceIdempotency
                 return $this->replay($existing);
             }
 
-            // الطلب الأول لسا شغّال: إلا إذا صار قديم كتير، بنستولي عليه بشكل ذرّي
+         
             $stale = now()->subSeconds(self::STALE_LOCK_SECONDS);
             $takenOver = DB::table('idempotency_keys')
                 ->where('id', $existing->id)

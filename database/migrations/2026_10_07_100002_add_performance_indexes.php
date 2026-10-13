@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// التقارير والداشبورد والمطبخ والتوصيل بتفلتر على هالأعمدة وما كان عليها أي فهرس
-// (بس مفاتيح الـ foreign key). مع كبر جدول orders بتصير full scan بكل طلب.
+
 return new class extends Migration
 {
     public function up(): void

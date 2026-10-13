@@ -4,10 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// ضريبة قابلة للتخصيص: null يعني "استخدم نسبة الضريبة الافتراضية"
-// (بترث من التصنيف، وإذا التصنيف مالوش نسبة خاصة فيه بترث من
-// settings.tax_rate العامة). حط نسبة صريحة (حتى 0) لتجاوز الافتراضي،
-// مثال واقعي: المشروبات الغازية عليها ضريبة أعلى من الأكل.
+
 return new class extends Migration
 {
     public function up(): void

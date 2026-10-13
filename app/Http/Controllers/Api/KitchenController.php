@@ -7,14 +7,10 @@ use App\Models\AppNotification;
 use App\Models\Order;
 use Illuminate\Validation\ValidationException;
 
-/**
- * شاشة المطبخ (Kitchen Display System):
- * بتدير حركة الطلب بين pending -> preparing -> ready -> completed/out_for_delivery
- * وبتسجل توقيت كل مرحلة حتى يصير فيه تتبع لأداء المطبخ.
- */
+
 class KitchenController extends Controller
 {
-    // طابور المطبخ: كل الطلبات يلي لسا ما خلصت تحضير، الأقدم أول (FIFO)
+ 
     public function queue()
     {
         return Order::with(['items.menuItem', 'table'])
@@ -52,7 +48,7 @@ class KitchenController extends Controller
             'ready_at' => now(),
         ]);
 
-        // لطلبات الديليفري: صار الطلب جاهز لتسليمه للسائق
+     
         if ($order->order_type === 'delivery' && $order->delivery_status === 'pending') {
             AppNotification::notifyRole(
                 'admin',
@@ -66,7 +62,7 @@ class KitchenController extends Controller
         return response()->json($order->fresh()->load(['items.menuItem', 'table']));
     }
 
-    // تسليم الطلب للزبون مباشرة (صالة/تيك أواي فقط - طلبات التوصيل تتسكر من مسار التوصيل)
+
     public function serve(Order $order)
     {
         if ($order->status !== 'ready') {

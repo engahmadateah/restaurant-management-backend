@@ -9,8 +9,7 @@ use Illuminate\Http\Request;
 
 class FloorController extends Controller
 {
-    // بيرجع كل الطوابق/الأقسام مع طاولاتها - هاد هو الـ endpoint الرئيسي
-    // اللي الفرونت بيرسم منه خطة الطاولات المرئية (Floor Plan)
+  
     public function index()
     {
         return Floor::with(['tables' => function ($query) {
@@ -58,8 +57,7 @@ class FloorController extends Controller
 
     public function destroy(Floor $floor)
     {
-        // ما منسمح نحذف طابق فيه طاولات - أسهل نتفادى طاولات "يتيمة"
-        // من إننا نطلب من المستخدم ينقلها أو يحذفها أول
+       
         if ($floor->tables()->exists()) {
             return response()->json([
                 'message' => 'في طاولات مرتبطة بهاد الطابق، لازم تنقلها أو تحذفها أول',
@@ -71,7 +69,7 @@ class FloorController extends Controller
         return response()->json(['message' => 'تم الحذف بنجاح']);
     }
 
-    // تحديث موضع/حجم/دوران طاولة واحدة على لوحة الرسم (Drag & Drop)
+  
     public function updatePosition(Request $request, RestaurantTable $restaurantTable)
     {
         $validated = $request->validate([
@@ -89,7 +87,7 @@ class FloorController extends Controller
         return response()->json($restaurantTable->load('floor'));
     }
 
-    // تحديث مواضع كذا طاولة دفعة وحدة (لما المستخدم يسحب كذا طاولة ويحفظ مرة وحدة)
+
     public function bulkUpdatePositions(Request $request)
     {
         $validated = $request->validate([

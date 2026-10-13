@@ -12,10 +12,10 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    // الأدوار المسموحة بالنظام
+ 
     private const ROLES = ['admin', 'manager', 'cashier', 'waiter', 'chef', 'driver'];
 
-    // قائمة الموظفين، مع إمكانية فلترة حسب الدور أو الحالة أو البحث بالاسم/الإيميل
+
     public function index(Request $request)
     {
         $query = User::query();
@@ -41,11 +41,7 @@ class UserController extends Controller
         return $query->latest()->paginate($this->perPage($request));
     }
 
-    /**
-     * دليل موظفين مختصر (بدون إيميل ولا رواتب) لقوائم الاختيار: تعيين سائق، توليد رواتب،
-     * جدولة ورديات، فلتر الحضور. قبل كانت هالشاشات تستدعي GET /users (role:admin) فكانت
-     * بتفشل بـ 403 عند المدير والكاشير رغم إنو عندهم صلاحية الشاشة.
-     */
+ 
     public function directory(Request $request)
     {
         $query = User::query()->select(['id', 'name', 'role', 'phone', 'is_active'])->orderBy('name');
@@ -61,7 +57,7 @@ class UserController extends Controller
         return $query->limit(self::ALL_ROWS_CAP)->get();
     }
 
-    // إنشاء حساب موظف جديد
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -71,7 +67,7 @@ class UserController extends Controller
             'role' => ['required', Rule::in(self::ROLES)],
             'phone' => 'nullable|string|max:30',
             'is_active' => 'boolean',
-            // إعدادات الراتب (اختيارية وقت الإنشاء، ممكن تتحدد لاحقًا من التعديل)
+        
             'salary_type' => 'sometimes|in:hourly,monthly',
             'hourly_rate' => 'nullable|numeric|min:0',
             'monthly_salary' => 'nullable|numeric|min:0',
@@ -80,7 +76,7 @@ class UserController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        // كلمة السر يلي حطها الأدمن مؤقتة: الموظف لازم يغيّرها بأول دخول
+
         $validated['must_change_password'] = true;
 
         $user = User::create($validated);
@@ -93,7 +89,7 @@ class UserController extends Controller
         return $user;
     }
 
-    // تعديل بيانات موظف (بدون كلمة السر - إلها endpoint خاص فيها)
+
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
@@ -102,7 +98,7 @@ class UserController extends Controller
             'role' => ['sometimes', 'required', Rule::in(self::ROLES)],
             'phone' => 'nullable|string|max:30',
             'is_active' => 'boolean',
-            // إعدادات الراتب - تتقرأ من PayrollCalculator وقت توليد كشف راتب جديد
+
             'salary_type' => 'sometimes|in:hourly,monthly',
             'hourly_rate' => 'nullable|numeric|min:0',
             'monthly_salary' => 'nullable|numeric|min:0',
@@ -110,7 +106,7 @@ class UserController extends Controller
             'overtime_multiplier' => 'nullable|numeric|min:1',
         ]);
 
-        // ما بتعطّل حسابك ولا بتغيّر دورك بإيدك: هيك بتقفل الأدمن الأخير برا النظام
+
         $isSelf = $request->user()->id === $user->id;
         $deactivating = array_key_exists('is_active', $validated) && ! $validated['is_active'];
         $roleChanging = isset($validated['role']) && $validated['role'] !== $user->role;
@@ -121,7 +117,7 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        // تعطيل الحساب أو تغيير الدور = سحب كل توكناته حتى يرجع يسجل دخول بالصلاحيات الجديدة
+
         if ($deactivating || $roleChanging) {
             $user->tokens()->delete();
         }
@@ -129,15 +125,14 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    // إعادة تعيين كلمة سر موظف من طرف الأدمن
+
     public function resetPassword(Request $request, User $user)
     {
         $validated = $request->validate([
             'password' => 'required|string|min:6',
         ]);
 
-        // لو الأدمن صفّر كلمة سر موظف تاني: كلمة السر الجديدة مؤقتة وبيجبره يغيّرها.
-        // لو صفّر كلمة سر حسابه هو: هو اختارها بنفسه فما منجبره
+
         $isSelf = $request->user()->id === $user->id;
 
         $user->update([
@@ -145,21 +140,20 @@ class UserController extends Controller
             'must_change_password' => ! $isSelf,
         ]);
 
-        // منسحب كل التوكنات القديمة تبعه حتى يضطر يسجل دخول من جديد
+
         $user->tokens()->delete();
 
         return response()->json(['message' => 'تم تغيير كلمة السر بنجاح']);
     }
 
-    // حذف حساب موظف (ما بينحذفش حسابك الحالي لحالك)
+ 
     public function destroy(Request $request, User $user)
     {
         if ($request->user()->id === $user->id) {
             return response()->json(['message' => 'ما فيك تحذف حسابك أنت'], 422);
         }
 
-        // soft delete: طلباته ودفعاته وورديات وكشوف رواتبه بتضل بالسجل (قبل كان حذفه يمسحهم بالـ cascade).
-        // منحرّر الإيميل حتى ينفع يتسجّل موظف جديد بنفس العنوان، ومنعطّل الحساب.
+      
         DB::transaction(function () use ($user) {
             $user->tokens()->delete();
             $user->forceFill([
@@ -172,7 +166,7 @@ class UserController extends Controller
         return response()->json(['message' => 'تم حذف الموظف بنجاح']);
     }
 
-    // كل الصلاحيات المتاحة بالنظام + الصلاحيات الافتراضية لكل دور (للواجهة)
+
     public function availablePermissions()
     {
         return response()->json([
@@ -181,7 +175,7 @@ class UserController extends Controller
         ]);
     }
 
-    // صلاحيات موظف معيّن: الافتراضية من دوره + الإضافية + المسحوبة + الفعلية النهائية
+
     public function showPermissions(User $user)
     {
         return response()->json([
@@ -194,9 +188,7 @@ class UserController extends Controller
         ]);
     }
 
-    // بيمنح/يسحب صلاحيات دقيقة لموظف فوق صلاحيات دوره الافتراضية
-    // مثال: كاشير تشوف تقارير بس ما تعدلها:
-    //   { "extra_permissions": ["reports.view"], "revoked_permissions": [] }
+
     public function updatePermissions(Request $request, User $user)
     {
         $validated = $request->validate([

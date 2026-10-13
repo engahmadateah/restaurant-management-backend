@@ -13,22 +13,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-/**
- * حركات نقدية يدوية على الصندوق المفتوح: مصروف مدفوع من الدرج، سحب، إيداع.
- *
- *  - بتأثر على "المتوقع" بالصندوق (شوف CashDrawerCalculator) فإغلاق الصندوق بيضل دقيق.
- *  - المصروف بينسجّل كمان كسجل بجدول expenses (تصنيفه من category، والافتراضي other)
- *    حتى يظهر بتقرير الأرباح من غير ما المدير يدخله مرتين.
- *  - ما بتنضاف حركة على صندوق مسكّر، ولا بيطلع من الصندوق أكتر من يلي فيه.
- *  - الحذف (تصحيح غلطة) لصاحب صلاحية drawer.manage_all بس، وبيتسجّل بسجل التدقيق.
- */
+
 class CashMovementController extends Controller
 {
     public function __construct(private CashDrawerCalculator $calculator)
     {
     }
 
-    /** صندوقي أنا أو (صلاحية manage_all) أي صندوق، غير هيك 403 */
+
     private function authorizeDrawer(Request $request, CashDrawer $drawer): void
     {
         $canSeeAll = $request->user()->hasPermission('drawer.manage_all');
@@ -36,7 +28,7 @@ class CashMovementController extends Controller
         abort_unless($canSeeAll || $drawer->user_id === $request->user()->id, 403, 'ما عندك صلاحية على هالصندوق');
     }
 
-    /** الحركة لازم تكون تابعة للصندوق بالمسار، وإلا 404 */
+
     private function ensureBelongs(CashDrawer $drawer, CashMovement $movement): void
     {
         abort_unless($movement->cash_drawer_id === $drawer->id, 404);
@@ -65,12 +57,12 @@ class CashMovementController extends Controller
             'type' => ['required', Rule::in(CashMovement::TYPES)],
             'amount' => 'required|numeric|min:0.01|max:99999999',
             'reason' => 'required|string|max:255',
-            // بس لنوع expense: تصنيف المصروف بجدول المصاريف (الافتراضي other)
+     
             'category' => ['nullable', Rule::in(ExpenseController::CATEGORIES)],
         ]);
 
         $movement = DB::transaction(function () use ($request, $drawer, $validated) {
-            // نفس قفل الإغلاق: ما بيصير إغلاق وإضافة حركة بنفس اللحظة
+       
             $locked = CashDrawer::whereKey($drawer->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->isOpen()) {
@@ -83,7 +75,6 @@ class CashMovementController extends Controller
             $reason = trim($validated['reason']);
             $type = $validated['type'];
 
-            // ما بيطلع من الصندوق أكتر من المتوقع حالياً
             if (in_array($type, CashMovement::OUTFLOW_TYPES, true)) {
                 $expectedC = Money::cents($this->calculator->summarize($locked)['expected_cash']);
 
@@ -135,7 +126,7 @@ class CashMovementController extends Controller
 
             $expense = $movement->expense;
             $movement->delete();
-            // المصروف يلي انسجّل مع الحركة بيروح معها (وإلا بيضل مصروف وهمي بالتقارير)
+   
             $expense?->delete();
         });
 

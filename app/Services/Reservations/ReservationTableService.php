@@ -20,10 +20,7 @@ class ReservationTableService
         }
     }
 
-    /**
-     * بيقفل صف الطاولة ثم بيتحقق من السعة ومن عدم التعارض.
-     * لازم يتنادى جوا DB::transaction حتى القفل يضل ساري لحد ما ينحفظ الحجز.
-     */
+  
     public function assertFits(?int $tableId, int $partySize, string $date, string $time, ?int $ignoreReservationId = null): void
     {
         if (! $tableId) {
@@ -41,7 +38,7 @@ class ReservationTableService
         $this->assertIsFree($tableId, $date, $time, $ignoreReservationId);
     }
 
-    /** بيحط الطاولة "محجوزة" فقط إذا حان وقت الحجز وكانت متاحة (ما بيكتب فوق طاولة مشغولة) */
+
     public function holdIfDue(Reservation $reservation): void
     {
         if (! $reservation->table_id || ! $reservation->shouldHoldTable()) {
@@ -62,7 +59,6 @@ class ReservationTableService
         RestaurantTable::whereKey($tableId)->update(['status' => TableStatus::Occupied->value]);
     }
 
-    /** بيفرّج الطاولة المحجوزة إلا إذا في حجز مؤكد تاني ماسكها هلأ */
     public function release(?int $tableId, int $exceptReservationId): void
     {
         if (! $tableId) {
@@ -84,7 +80,7 @@ class ReservationTableService
             ->update(['status' => TableStatus::Available->value]);
     }
 
-    /** ما في حجز فعّال عالطاولة نفسها بفارق أقل من ساعتين عن الوقت المطلوب */
+
     private function assertIsFree(int $tableId, string $date, string $time, ?int $ignoreReservationId): void
     {
         $requested = $this->toMinutes($time);

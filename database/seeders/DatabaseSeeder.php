@@ -16,15 +16,10 @@ use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * بيانات ديمو واقعية لعرض النظام - مطعم "زيتون" (أكل شرقي)
-     */
+   
     public function run(): void
     {
-        // ---------- كلمة سر المستخدمين التجريبيين ----------
-        // كلمة السر الثابتة "password" بس بالبيئات المحلية والاختبارات. بأي بيئة تانية
-        // (staging/production) إما منقراها من SEED_DEFAULT_PASSWORD أو منولّد كلمة عشوائية
-        // ومنطبعها مرة وحدة، حتى ما يتسيّد على السيرفر حساب أدمن بكلمة سر معروفة.
+      
         $password = env('SEED_DEFAULT_PASSWORD');
 
         if (! $password) {
@@ -37,7 +32,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // ---------- المستخدمين ----------
+       
         User::updateOrCreate(
             ['email' => 'admin@restaurant.com'],
             [
@@ -46,7 +41,7 @@ class DatabaseSeeder extends Seeder
                 'role' => 'admin',
                 'phone' => '0931234567',
                 'is_active' => true,
-                // مثال راتب شهري ثابت (Payroll)
+              
                 'salary_type' => 'monthly',
                 'monthly_salary' => 2500000,
             ]
@@ -60,7 +55,7 @@ class DatabaseSeeder extends Seeder
                 'role' => 'cashier',
                 'phone' => '0937654321',
                 'is_active' => true,
-                // مثال أجر بالساعة (Payroll) - بيتحسب من ورديات الحضور/الانصراف
+              
                 'salary_type' => 'hourly',
                 'hourly_rate' => 12000,
             ]
@@ -79,7 +74,6 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // ---------- التصنيفات والأصناف ----------
         $menu = [
             'مقبلات' => [
                 ['name' => 'حمص بالطحينة', 'price' => 15000, 'description' => 'حمص طازج مع زيت زيتون وصنوبر'],
@@ -111,7 +105,7 @@ class DatabaseSeeder extends Seeder
             ],
         ];
 
-        // ملاحظة: Str::slug() بتشيل الأحرف العربية، فمنولّد سلاج يدوي يحافظ على الاسم
+     
         $categorySlugs = [
             'مقبلات' => 'appetizers',
             'المشاوي' => 'grills',
@@ -120,7 +114,7 @@ class DatabaseSeeder extends Seeder
             'الحلويات' => 'desserts',
         ];
 
-        // ترجمة إنجليزية لكل تصنيف - مثال على دعم تعدد اللغات بالمنيو (translations)
+    
         $categoryTranslationsEn = [
             'مقبلات' => 'Appetizers',
             'المشاوي' => 'Grills',
@@ -140,8 +134,7 @@ class DatabaseSeeder extends Seeder
                     'translations' => ['en' => ['name' => $categoryTranslationsEn[$categoryName] ?? $categoryName]],
                     'is_active' => true,
                     'sort_order' => $sort++,
-                    // مثال واقعي على ضريبة مخصصة حسب التصنيف: المشروبات الغازية/الساخنة
-                    // عليها ضريبة أعلى (20%) من باقي المنيو (اللي بياخد النسبة العامة 16%)
+               
                     'tax_rate' => $categoryName === 'المشروبات' ? 0.20 : null,
                 ]
             );
@@ -155,8 +148,7 @@ class DatabaseSeeder extends Seeder
                         'price' => $item['price'],
                         'is_available' => true,
                         'sort_order' => $itemSort++,
-                        // منفعّل تتبع المخزون لأصناف المشاوي (لحوم) كمثال واقعي
-                        // على عنصر بيخلص بسرعة ولازم ننتبهله
+                       
                         'track_stock' => $categoryName === 'المشاوي',
                         'stock_quantity' => $categoryName === 'المشاوي' ? rand(3, 25) : 0,
                         'low_stock_threshold' => $categoryName === 'المشاوي' ? 5 : 5,
@@ -165,10 +157,10 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // ---------- خيارات إضافية تجريبية (Modifiers) على صنف "شيش طاووق" ----------
+    
         $shishTawook = MenuItem::where('name', 'شيش طاووق')->first();
         if ($shishTawook) {
-            // مثال على ترجمة إنجليزية لصنف بالمنيو (?lang=en بالـ API)
+        
             $shishTawook->update([
                 'translations' => [
                     'en' => [
@@ -193,7 +185,7 @@ class DatabaseSeeder extends Seeder
             \App\Models\Modifier::updateOrCreate(['modifier_group_id' => $extrasGroup->id, 'name' => 'صوص ثوم'], ['extra_price' => 2000]);
         }
 
-        // ---------- الطوابق وخطة الطاولات المرئية (Floor Plan) ----------
+    
         $groundFloor = Floor::updateOrCreate(
             ['name' => 'الطابق الأرضي'],
             ['canvas_width' => 900, 'canvas_height' => 600, 'sort_order' => 1, 'is_active' => true]
@@ -203,8 +195,7 @@ class DatabaseSeeder extends Seeder
             ['canvas_width' => 900, 'canvas_height' => 400, 'sort_order' => 2, 'is_active' => true]
         );
 
-        // ---------- الطاولات ----------
-        // أول 7 طاولات بالطابق الأرضي مرتبة بشبكة، والباقي (8-10) بالتراس
+   
         $statuses = ['available', 'available', 'available', 'occupied', 'reserved'];
         $columns = 4;
         for ($i = 1; $i <= 10; $i++) {
@@ -228,8 +219,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // ---------- العملات (تعدد العملات بعرض المنيو) ----------
-        // الليرة السورية هي العملة الأساسية (كل الأسعار بقاعدة البيانات محسوبة فيها)
+   
         Currency::updateOrCreate(
             ['code' => 'SYP'],
             ['name' => 'ليرة سورية', 'symbol' => 'ل.س', 'exchange_rate' => 1, 'is_default' => true, 'is_active' => true]
@@ -243,8 +233,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'يورو', 'symbol' => '€', 'exchange_rate' => 0.000065, 'is_default' => false, 'is_active' => true]
         );
 
-        // ---------- الزبائن ----------
-        // منعطي محمد رصيد نقاط بداية حتى يصير فيه شي يتجرب استبداله على طلب جديد
+   
         $customers = [
             ['name' => 'محمد العلي', 'phone' => '0931112223', 'email' => 'mohammad@example.com', 'loyalty_points' => 150],
             ['name' => 'رنا خالد', 'phone' => '0932223334', 'email' => 'rana@example.com', 'loyalty_points' => 40],
@@ -254,7 +243,7 @@ class DatabaseSeeder extends Seeder
             Customer::updateOrCreate(['phone' => $c['phone']], $c);
         }
 
-        // ---------- الكوبونات ----------
+    
         Coupon::updateOrCreate(['code' => 'WELCOME10'], [
             'type' => 'percentage', 'value' => 10, 'is_active' => true, 'expires_at' => now()->addMonths(3),
         ]);
@@ -262,20 +251,20 @@ class DatabaseSeeder extends Seeder
             'type' => 'fixed', 'value' => 15000, 'is_active' => true, 'expires_at' => now()->addMonths(3),
         ]);
 
-        // ---------- إعدادات المطعم ----------
+      
         $settings = [
             'restaurant_name' => 'مطعم زيتون',
             'phone' => '0930000000',
             'address' => 'شارع الحمرا، دمشق، سوريا',
             'currency' => 'ل.س',
             'tax_rate' => '0.16',
-            // نقاط ولاء: نقطة واحدة لكل 1000 ليرة من قيمة الطلب المكتمل
+          
             'loyalty_points_per_currency' => '0.001',
-            // قيمة النقطة الواحدة عند استبدالها كخصم (200 ل.س لكل نقطة)
+         
             'loyalty_point_value' => '200',
-            // رسوم توصيل ثابتة لطلبات الديليفري
+           
             'delivery_fee' => '7000',
-            // أقصى مدة وردية بالساعات قبل ما تنسكر تلقائياً (الموظف نسي الانصراف)
+           
             'shift_max_hours' => '12',
         ];
         foreach ($settings as $key => $value) {

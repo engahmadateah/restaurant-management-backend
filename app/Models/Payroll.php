@@ -43,10 +43,7 @@ class Payroll extends Model
         'paid_at' => 'datetime',
     ];
 
-    /**
-     * الموظف العادي بيشوف كشوفات راتبه هو بس، صاحب صلاحية payroll.manage بيشوف الكل
-     * (وبيقدر يفلتر بـ user_id). فلتر status متاح للكل.
-     */
+  
     public function scopeVisibleTo(Builder $query, User $viewer, array $filters = []): Builder
     {
         if (! $viewer->hasPermission('payroll.manage')) {
@@ -62,7 +59,7 @@ class Payroll extends Model
         return $query;
     }
 
-    /** الكشوفات يلي فترتها بتتقاطع مع المجال from..to (الاتنين اختياريين) */
+  
     public function scopeOverlapping(Builder $query, ?string $from, ?string $to): Builder
     {
         return $query

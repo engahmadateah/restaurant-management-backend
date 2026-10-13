@@ -2,7 +2,7 @@
 
 namespace App\Services\Pdf;
 
-/** PDF لتقرير نهاية اليوم. نصوص لاتينية (الخط القياسي ما بيدعم العربي، شوف SimplePdfWriter). */
+
 class ZReportPdfBuilder
 {
     public static function build(array $r, string $restaurantName, string $currency): string

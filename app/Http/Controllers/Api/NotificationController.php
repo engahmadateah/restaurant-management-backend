@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    /**
-     * إشعارات المستخدم المسجل دخوله حالياً
-     */
+   
     public function index(Request $request)
     {
         $query = AppNotification::where('user_id', $request->user()->id);
@@ -72,9 +70,6 @@ class NotificationController extends Controller
         return response()->json(['message' => 'تم حذف الإشعار']);
     }
 
-    /**
-     * منتأكد إنو الإشعار يلي عم يتعامل معه المستخدم هو إشعاره هو، مش إشعار حدا ثاني
-     */
     private function authorizeOwnership(Request $request, AppNotification $notification): void
     {
         if ($notification->user_id !== $request->user()->id) {

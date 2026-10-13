@@ -10,17 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * توليد كشوفات راتب لفترة معيّنة - لموظف واحد أو لكل الموظفين النشيطين.
- *
- * - الفترة لازم تكون خلصت (بتتحقق منها GeneratePayrollRequest): كشف لفترة لسا ما خلصت بيحسب
- *   جزء من الأيام وبعدين بيمنع توليد الكشف الصحيح بسبب منع التداخل.
- * - ممنوع تتداخل فترتين لنفس الموظف (أي حالة): قبل، فترة 1-31 وفترة 15-15 تاني شهر كانوا
- *   بيتولّدوا مع بعض وبتنحسب ورديات 15-31 مرتين.
- *   نفس الفترة بالضبط = skipped. تداخل مختلف = conflicts.
- * - warnings: موظفين عندهم ورديات مفتوحة أو منسية (انسكرت تلقائياً) داخل الفترة، لأنها
- *   بتأثر على الأرقام: المفتوحة ما بتنحسب أبداً، والمنسية بتنحسب عند الحد الأقصى.
- */
+
 class GeneratePayrollsAction
 {
     public function __construct(private PayrollCalculator $calculator) {}
@@ -81,12 +71,12 @@ class GeneratePayrollsAction
     private function generateFor(User $user, Carbon $periodStart, Carbon $periodEnd, User $by): array
     {
         return DB::transaction(function () use ($user, $periodStart, $periodEnd, $by) {
-            // قفل صف الموظف: مديرين بيولّدوا بنفس اللحظة ما لازم يمرقوا فحص التداخل مع بعض
+          
             User::whereKey($user->id)->lockForUpdate()->first();
 
             $conflict = Payroll::where('user_id', $user->id)
-                // whereDate: العمود date بس Eloquent بيخزّنه مع وقت (00:00:00) على بعض الـ DB،
-                // فمقارنة نصية مباشرة كانت تفوّت التداخل عند حدود الفترة
+                
+               
                 ->whereDate('period_start', '<=', $periodEnd->toDateString())
                 ->whereDate('period_end', '>=', $periodStart->toDateString())
                 ->orderBy('period_start')
@@ -112,7 +102,7 @@ class GeneratePayrollsAction
                 'regular_pay' => $calc['regular_pay'],
                 'overtime_pay' => $calc['overtime_pay'],
                 'gross_pay' => $calc['gross_pay'],
-                'net_pay' => $calc['gross_pay'], // بدون استقطاعات افتراضيًا - تنعدّل يدويًا قبل الاعتماد
+                'net_pay' => $calc['gross_pay'], 
                 'status' => PayrollStatus::Draft,
                 'generated_by' => $by->id,
             ])];

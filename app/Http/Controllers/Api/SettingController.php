@@ -9,11 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class SettingController extends Controller
 {
-    /**
-     * الإعدادات المسموحة وقواعدها. قبل كانت أي key وأي قيمة بتنقبل، فـ tax_rate = "abc"
-     * كان يكسر حساب كل الطلبات، وقيمة فاضية كانت تتحول لصفر (ضريبة 0 بصمت).
-     * القيم الرقمية إلزامية (required) حتى ما تنخزن null.
-     */
+
     private const RULES = [
         'restaurant_name' => ['required', 'string', 'max:100'],
         'phone' => ['nullable', 'string', 'max:30'],
@@ -23,20 +19,20 @@ class SettingController extends Controller
         'delivery_fee' => ['required', 'numeric', 'min:0', 'max:1000000000'],
         'loyalty_points_per_currency' => ['required', 'numeric', 'min:0', 'max:1000'],
         'loyalty_point_value' => ['required', 'numeric', 'min:0', 'max:1000000000'],
-        // أقصى مدة وردية بالساعات: بعدها بتنسكر تلقائياً إذا الموظف نسي يسجّل انصراف
+   
         'shift_max_hours' => ['required', 'numeric', 'between:1,24'],
-        // الطلب من الزبون مباشرة (طفيّه افتراضياً): QR على الطاولة، وطلب أونلاين (استلام/توصيل)
+      
         'qr_ordering_enabled' => ['required', 'boolean'],
         'online_ordering_enabled' => ['required', 'boolean'],
         'online_min_order' => ['required', 'numeric', 'min:0', 'max:1000000000'],
     ];
 
-    /** بتنخزّن دايماً '1' أو '0' (مش true/false/نص فاضي) */
+
     private const BOOLEAN_KEYS = ['qr_ordering_enabled', 'online_ordering_enabled'];
 
     public function index()
     {
-        // من الكاش (query وحدة عند أول طلب بعد أي تعديل) - هالـ endpoint بينطلب مع كل فتح للتطبيق
+    
         return response()->json(Setting::allCached());
     }
 
@@ -53,7 +49,7 @@ class SettingController extends Controller
             ]);
         }
 
-        // بنفحص بس المفاتيح اللي انبعتت (تحديث جزئي مسموح)، بس كل مفتاح لازم يكون سليم
+ 
         $rules = [];
         foreach (array_keys($request->input('settings')) as $key) {
             $rules["settings.{$key}"] = self::RULES[$key];
@@ -62,7 +58,7 @@ class SettingController extends Controller
         $values = $request->validate($rules)['settings'];
 
         foreach ($values as $key => $value) {
-            // phone/address الفاضيين بيتخزنوا نص فاضي (مش null)
+   
             if (in_array($key, self::BOOLEAN_KEYS, true)) {
                 $value = filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
             }

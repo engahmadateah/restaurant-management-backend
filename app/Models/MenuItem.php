@@ -20,7 +20,7 @@ class MenuItem extends Model
         'track_stock', 'stock_quantity', 'low_stock_threshold',
     ];
 
-    // الحقول القابلة للترجمة عن طريق HasTranslations::translate()
+   
     protected array $translatable = ['name', 'description'];
 
     protected $casts = [
@@ -53,9 +53,7 @@ class MenuItem extends Model
         return $this->hasMany(ModifierGroup::class);
     }
 
-    /**
-     * الصنف بمخزون منخفض إذا كان بيتتبّع مخزون أصلاً والكمية وصلت أو تحت الحد الأدنى.
-     */
+   
     public function getIsLowStockAttribute(): bool
     {
         return $this->track_stock && $this->stock_quantity <= $this->low_stock_threshold;
@@ -63,12 +61,7 @@ class MenuItem extends Model
 
     protected $appends = ['is_low_stock'];
 
-    /**
-     * نسبة الضريبة الفعلية على هاد الصنف، بترتيب الأولوية:
-     * 1) نسبة خاصة بالصنف نفسه (menu_items.tax_rate)
-     * 2) نسبة التصنيف التابع إله (categories.tax_rate)
-     * 3) النسبة العامة الافتراضية من settings.tax_rate (كباراميتر $fallback)
-     */
+
     public function effectiveTaxRate(float $fallback): float
     {
         if ($this->tax_rate !== null) {

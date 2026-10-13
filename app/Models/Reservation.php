@@ -14,13 +14,13 @@ class Reservation extends Model
 {
     use Auditable, HasFactory;
 
-    /** العلاقات يلي بترجع دايماً مع الحجز */
+   
     public const WITH = ['table', 'customer', 'user'];
 
-    /** الطاولة بتنحجز فعليًا (status = reserved) قبل موعد الحجز بهالمدة... */
+  
     public const HOLD_BEFORE_MINUTES = 60;
 
-    /** ...وبتضل محجوزة لحد هالمدة بعد موعده (نفس نافذة منع التعارض بين الحجوزات) */
+    
     public const HOLD_AFTER_MINUTES = 120;
 
     protected $fillable = [
@@ -49,9 +49,7 @@ class Reservation extends Model
         return Carbon::parse($this->reservation_date->toDateString() . ' ' . substr((string) $this->reservation_time, 0, 5));
     }
 
-    /**
-     * هل هاد الحجز لازم "يمسك" الطاولة هلأ؟ حجز بعد أسبوع ما لازم يعطّل الطاولة من اليوم.
-     */
+    
     public function shouldHoldTable(?Carbon $now = null): bool
     {
         $now ??= now();

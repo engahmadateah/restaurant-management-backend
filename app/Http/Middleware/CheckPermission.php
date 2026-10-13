@@ -8,16 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckPermission
 {
-    /**
-     * حارس صلاحيات دقيق (Fine-grained permissions)، أدق من CheckRole
-     * (يلي بيتحقق بس من الـ role الثابت).
-     *
-     * استخدام بالـ routes:
-     *   Route::middleware('permission:reports.view')->group(...)
-     *
-     * لو بدك تسمح لأكتر من صلاحية بديلة (أي وحدة فيها تكفي):
-     *   Route::middleware('permission:reports.view,reports.export')
-     */
     public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
         $user = $request->user();

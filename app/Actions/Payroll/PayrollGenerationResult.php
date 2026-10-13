@@ -19,7 +19,7 @@ final class PayrollGenerationResult
         public readonly array $warnings,
     ) {}
 
-    /** ما انولّد ولا كشف وكل المشكلة تداخل = 422 */
+    
     public function allConflicted(): bool
     {
         return $this->generated->isEmpty() && $this->conflicts !== [];

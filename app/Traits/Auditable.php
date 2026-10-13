@@ -6,16 +6,7 @@ use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
 
-/**
- * أي موديل بيستخدم هاد الـ trait بيصير عنده تسجيل تلقائي بجدول
- * audit_logs لكل عملية إنشاء/تعديل/حذف: مين عملها، وإيمتى، وشو تغيّر.
- *
- * استخدام:
- *   class Order extends Model { use Auditable; }
- *
- * لو بدك تستثني حقول معينة من التسجيل (متل كلمة السر) عرّف بالموديل:
- *   protected array $auditExclude = ['password'];
- */
+
 trait Auditable
 {
     public static function bootAuditable(): void
@@ -62,7 +53,7 @@ trait Auditable
                 'user_agent' => Request::userAgent(),
             ]);
         } catch (\Throwable $e) {
-            // ما بدنا فشل التسجيل بالـ audit log يوقف العملية الأساسية (create/update/delete)
+          
             report($e);
         }
     }

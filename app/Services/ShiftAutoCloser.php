@@ -7,14 +7,7 @@ use App\Models\Shift;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * إغلاق الورديات المنسية. الموظف نسي يسجّل انصراف فضلت الوردية مفتوحة:
- *  - ما بيقدر يسجّل حضور اليوم التاني ("عندك وردية مفتوحة")
- *  - لو سجّل انصراف بعد يومين، الوردية بتنحسب 48 ساعة وبتنزل بالراتب كأنها حقيقية
- *
- * الحل: الوردية بتنسكر عند clock_in + shift_max_hours (مش عند "هلأ")، بتتعلّم
- * auto_closed، وبيوصل إشعار للموظف وللمدراء ليراجعوها ويصلّحوها قبل الرواتب.
- */
+
 class ShiftAutoCloser
 {
     /**
@@ -47,9 +40,7 @@ class ShiftAutoCloser
         return count($closed);
     }
 
-    /**
-     * بيسكّر وردية وحدة عند الحد الأقصى. بيرجّع false إذا انسكرت من جهة تانية بنفس اللحظة.
-     */
+   
     public function close(Shift $shift, ?int $maxMinutes = null): bool
     {
         $maxMinutes ??= Shift::maxMinutes();
@@ -86,7 +77,7 @@ class ShiftAutoCloser
         return $closed;
     }
 
-    /** إشعار واحد ملخّص لكل مدير (مش إشعار لكل وردية) */
+ 
     private function notifyManagers(array $closed): void
     {
         if ($closed === []) {

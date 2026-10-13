@@ -5,9 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-// عمود delivery_status كان enum بدون قيمة "cancelled"، فالطلب الملغي كان يضل
-// delivery_status = pending/assigned للأبد ويتحسب "توصيل نشط" بالداشبورد.
-// منحوّله لـ string (نفس أسلوب migration payment_status) ومنصلّح البيانات القديمة.
+
 return new class extends Migration
 {
     public function up(): void
@@ -25,6 +23,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // ما منرجّع enum عن قصد: ممكن يكون فيه صفوف 'cancelled' موجودة.
+     
     }
 };

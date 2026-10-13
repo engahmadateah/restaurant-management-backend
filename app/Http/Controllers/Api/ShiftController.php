@@ -14,8 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class ShiftController extends Controller
 {
-    // قائمة الورديات: الموظف العادي بيشوف ورديات حاله بس، الأدمن/المدير بيشوف الكل
-    // وفيها فلترة اختيارية بـ user_id و from/to
+
     public function index(Request $request)
     {
         $query = Shift::with('user:id,name,role')->latest('clock_in');
@@ -35,7 +34,7 @@ class ShiftController extends Controller
             $query->whereDate('clock_in', '<=', $request->to);
         }
 
-        // ?auto_closed=1 : الورديات المنسية يلي لسا بدها مراجعة
+
         if ($request->boolean('auto_closed')) {
             $query->where('auto_closed', true);
         }
@@ -43,7 +42,7 @@ class ShiftController extends Controller
         return $query->get();
     }
 
-    // تسجيل حضور (بداية وردية) للمستخدم المسجل دخوله حالياً
+
     public function clockIn(Request $request, ShiftAutoCloser $closer)
     {
         $user = $request->user();
@@ -53,10 +52,10 @@ class ShiftController extends Controller
         ]);
 
         $shift = DB::transaction(function () use ($user, $validated, $closer) {
-            // قفل صف الموظف: ضغطتين متزامنتين على "حضور" ما لازم تعملوا ورديتين مفتوحتين
+
             User::whereKey($user->id)->lockForUpdate()->first();
 
-            // وردية منسية من أمس؟ بتنسكر هلأ حتى ما يضل الموظف عالق بـ "عندك وردية مفتوحة"
+     
             $closer->closeStale($user->id);
 
             if ($user->shifts()->whereNull('clock_out')->exists()) {
@@ -74,7 +73,7 @@ class ShiftController extends Controller
         return response()->json($shift, 201);
     }
 
-    // تسجيل انصراف (إغلاق الوردية المفتوحة) للمستخدم المسجل دخوله حالياً
+
     public function clockOut(Request $request, ShiftAutoCloser $closer)
     {
         $user = $request->user();
@@ -92,8 +91,8 @@ class ShiftController extends Controller
                 ]);
             }
 
-            // الوردية فاتت الحد الأقصى (نسي ينصرف): بتنسكر عند الحد مش عند "هلأ"،
-            // وإلا ساعات النسيان كلها بتنحسب براتبه
+     
+     
             if ($shift->clock_in->lte(now()->subMinutes(Shift::maxMinutes()))) {
                 $closer->close($shift);
 
@@ -111,10 +110,7 @@ class ShiftController extends Controller
         return response()->json($shift);
     }
 
-    /**
-     * تصحيح أوقات وردية (صاحب shifts.manage_all): الغالب وردية انسكرت تلقائياً والموظف
-     * بيقول إنو فعلياً خلص الساعة 6. ممنوع إذا الوردية داخل كشف راتب معتمد/مدفوع.
-     */
+    
     public function update(Request $request, Shift $shift)
     {
         $validated = $request->validate([
@@ -123,7 +119,7 @@ class ShiftController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        // الفرونت بيبعت ISO بتوقيت UTC؛ بنخزّن بتوقيت التطبيق (APP_TIMEZONE) متل باقي الورديات
+       
         $in = Carbon::parse($validated['clock_in'])->setTimezone(config('app.timezone'));
         $out = Carbon::parse($validated['clock_out'])->setTimezone(config('app.timezone'));
 
@@ -136,7 +132,7 @@ class ShiftController extends Controller
         DB::transaction(function () use ($shift, $validated, $in, $out, $request) {
             $shift = Shift::whereKey($shift->id)->lockForUpdate()->firstOrFail();
 
-            // الكشف بيحسب من clock_in: لازم الأوقات القديمة والجديدة برا أي كشف مقفول
+    
             foreach ([$shift->clock_in, $in] as $moment) {
                 $locked = Payroll::where('user_id', $shift->user_id)
                     ->whereIn('status', ['approved', 'paid'])
@@ -163,7 +159,7 @@ class ShiftController extends Controller
                 ]);
             }
 
-            // بعد التصحيح اليدوي ما عادت "بتحتاج مراجعة"
+       
             $shift->update([
                 'clock_in' => $in,
                 'clock_out' => $out,
@@ -176,7 +172,7 @@ class ShiftController extends Controller
         return response()->json($shift->fresh()->load('user:id,name,role'));
     }
 
-    // وردية موظف تاني بتنشاف بس لصاحب shifts.manage_all (قبل كان أي موظف يشوف وردية أي حدا بالـ id)
+
     public function show(Request $request, Shift $shift)
     {
         $user = $request->user();

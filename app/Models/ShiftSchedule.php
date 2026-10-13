@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-// وردية مجدولة مسبقًا (متل "وليد شغال بكرا من 9-5") - مختلفة عن Shift
-// يلي هو تسجيل حضور/انصراف فعلي بالـ clock-in/out
+
 class ShiftSchedule extends Model
 {
     use Auditable, HasFactory;
